@@ -10,6 +10,8 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
+
+import scheduler.Utilities.SQLParser;
 import scheduler.view.HomeScreenController;
 import scheduler.view.LoginController;
 import scheduler.model.DbConnection;
@@ -24,17 +26,22 @@ public class MainApp extends Application {
     private static HomeScreenController homeScreenController = new HomeScreenController();
     private static ModifyCustomerController modifyCustomerController = new ModifyCustomerController();
     private ResourceBundle loginBundle;
+    private static SQLParser sqlParser;
 
 
     @Override
     public void start(Stage primaryStage) throws Exception{
         this.primaryStage = primaryStage;
         db.connect();
-        //Locale.setDefault(new Locale("fr", "FR"));
+        Locale.setDefault(new Locale("fr", "FR"));
         System.out.println("Locale set to: " + Locale.getDefault());
         loginBundle = ResourceBundle.getBundle("scheduler/Bundle");
         db.printTable("user");
         showLoginScreen();
+        bypassLogin();
+        //sqlParser.prepareUserUpdate(111,"admin","admin", 1, "mike",
+        //        "2016-11-02 01:01:01", "2016-11-02 01:01:01", "mike");
+
     }
 
 
@@ -101,6 +108,10 @@ public class MainApp extends Application {
 
     public static DbConnection getDb() {
         return db;
+    }
+
+    private void bypassLogin (){
+        showHomeScreen();
     }
 
 
