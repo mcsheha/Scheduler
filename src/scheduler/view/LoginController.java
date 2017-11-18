@@ -112,7 +112,8 @@ public class LoginController {
         // The passwords match
         if(Objects.equals(parsedPassword, storedPassword)){
             System.out.println("The passwords match!");
-            mainApp.showHomeScreen();
+            mainApp.showHomeScreen(parsedUsername);
+            //mainApp.setCurrentUser(parsedUsername);
 
         // The passwords do not match
         } else {

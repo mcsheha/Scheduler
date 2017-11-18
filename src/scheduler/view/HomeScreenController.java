@@ -25,10 +25,23 @@ public class HomeScreenController {
 
 
     private static MainApp mainApp;
+    private static String currentUserName;
+
+
+/*
+
+    public HomeScreenController (String usr) {
+        this.currentUserName = usr;
+    }
+*/
+
+
 
     public void initialize(){
         choiceBox.getItems().addAll("Weekly", "Monthly");
         choiceBox.setValue("Weekly");
+
+        System.out.println("The current user when HomeScreenController is first initialized is: " + currentUserName);
     }
 
     public void setMainApp (MainApp mainApp) {
@@ -37,13 +50,16 @@ public class HomeScreenController {
 
     @FXML
     public void showAddPerson() throws IOException{
-        mainApp.showAddCustomerScreen();
+        mainApp.showAddCustomerScreen(currentUserName);
 
     }
 
+    public String getCurrentUserName() {
+        return currentUserName;
+    }
 
-
-
-
+    public void setCurrentUserName(String currentUserName) {
+        this.currentUserName = currentUserName;
+    }
 }
 
