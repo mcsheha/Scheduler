@@ -90,7 +90,7 @@ public class SQLParser {
 
         return psmt;
     }
-
+/*
     public boolean checkIfInTable(String searchTerm, String columnName, String tableName) {
         boolean rtn = false;
         Connection dBase = mainApp.getDb().getConnection();
@@ -112,7 +112,8 @@ public class SQLParser {
             e.printStackTrace();
         }
         return rtn;
-    }
+    }*/
+/*
 
         // Check if the specified country is already in the table and returns the country ID.
         // If not already in table calls addCountry and returns new country ID.
@@ -169,7 +170,9 @@ public class SQLParser {
         }
        return countryId;
     }
+*/
 
+/*
 
     //returns current date and time in UTC as a string.
     public String nowUtcAsString() {
@@ -186,7 +189,9 @@ public class SQLParser {
         return currentDateTime.toString().replace("T", " ").substring(0,21);
 
     }
+*/
 
+/*
     public int findLowestAvailableID (String tableName) {
         Connection dBase = MainApp.getDb().getConnection();
 
@@ -330,7 +335,7 @@ public class SQLParser {
             e.printStackTrace();
         }
         return addressId;
-    }
+    }*/
 
     public static String getCurrentUserName() {
         return currentUserName;

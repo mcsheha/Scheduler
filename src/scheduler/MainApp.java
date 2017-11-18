@@ -41,12 +41,12 @@ public class MainApp extends Application {
         db.printTable("user");
         showLoginScreen();
         bypassLogin();
-        System.out.println(sqlParser.checkIfInTable("dog", "userName", "user"));
-        System.out.println(sqlParser.nowUtcAsString());
+        //System.out.println(sqlParser.checkIfInTable("dog", "userName", "user"));
+        //System.out.println(sqlParser.nowUtcAsString());
 
         //sqlParser.prepareUserUpdate(111,"admin","admin", 1, "mike",
         //        "2016-11-02 01:01:01", "2016-11-02 01:01:01", "mike");
-        System.out.println("This lowest available customerId is: " + sqlParser.findLowestAvailableID("customer"));
+        //System.out.println("This lowest available customerId is: " + sqlParser.findLowestAvailableID("customer"));
 
     }
 
