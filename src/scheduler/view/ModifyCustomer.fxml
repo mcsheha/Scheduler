@@ -50,7 +50,7 @@
             <Label text="Country:    " GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
             <Label text="Postal Code:    " GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
             <Label text="Phone:    " GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
-            <TextField fx:id="customerIdField" GridPane.columnIndex="1" />
+            <TextField fx:id="customerIdField" disable="true" GridPane.columnIndex="1" />
             <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <TextField fx:id="street1Field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <TextField fx:id="street2Field" GridPane.columnIndex="1" GridPane.rowIndex="3" />

@@ -6,6 +6,7 @@ import javafx.stage.Stage;
 import scheduler.MainApp;
 import scheduler.Utilities.SQLParser;
 
+import javax.xml.soap.Text;
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -72,6 +73,8 @@ public class ModifyCustomerController {
     public void initialize(){
         //sqlParser.setCurrentUserName(currentUserName);
         System.out.println("The currentUserName of sqlParser after initializing ModifyCustomerController is: " + sqlParser.getCurrentUserName());
+        customerIdField.setText(String.valueOf(findLowestAvailableID("customer")));
+
 
     }
 
@@ -195,6 +198,7 @@ public class ModifyCustomerController {
                 psmt.setString(8, currentUser);
                 psmt.executeUpdate();
                 modifyCustomerScreenStage.close();
+                HomeScreenController.addToCustomerList(customerId, name);
 
             } catch (SQLException e) {
                 e.printStackTrace();

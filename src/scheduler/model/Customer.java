@@ -1,5 +1,10 @@
 package scheduler.model;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.time.*;
 
 
@@ -14,9 +19,32 @@ public class Customer {
     private String createdBy;
     private LocalDateTime lastUpdate;
     private String lastUpdatedBy;
+    private IntegerProperty id;
+    private StringProperty name;
+
+    public Customer (int customerId, String customerName) {
+        //this.customerId = customerId;
+        //this.customerName = customerName;
+        this.id = new SimpleIntegerProperty(customerId);
+        this.name = new SimpleStringProperty(customerName);
+    }
 
 
+    public StringProperty customerNameProperty () {
+       return name;
+    }
 
+    public IntegerProperty customerIdProperty () {
+        return id;
+    }
+
+    public Integer getId() {
+        return id.get();
+    }
+
+    public String getName () {
+        return name.get();
+    }
 
     public int getCustomerId() {
         return customerId;
@@ -81,4 +109,6 @@ public class Customer {
     public void setLastUpdatedBy(String lastUpdatedBy) {
         this.lastUpdatedBy = lastUpdatedBy;
     }
+
+
 }
