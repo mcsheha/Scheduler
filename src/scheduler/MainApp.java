@@ -13,16 +13,20 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import scheduler.Utilities.SQLParser;
+import scheduler.model.Customer;
 import scheduler.view.HomeScreenController;
 import scheduler.view.LoginController;
 import scheduler.model.DbConnection;
 import scheduler.view.ModifyCustomerController;
 
+import static java.lang.String.valueOf;
+
 
 public class MainApp extends Application {
 
+    private static MainApp firstInstance = null;
     private Stage primaryStage;
-    private static DbConnection db = new DbConnection();
+    private static DbConnection dbConnect = DbConnection.getInstance();
     private static LoginController loginController = new LoginController();
     private static HomeScreenController homeScreenController = new HomeScreenController();
     private static ModifyCustomerController modifyCustomerController = new ModifyCustomerController();
@@ -31,28 +35,30 @@ public class MainApp extends Application {
     private static String currentUsrName;
 
 
+    public static MainApp getInstance() {
+        if(firstInstance == null) {
+            firstInstance = new MainApp();
+        }
+        return firstInstance;
+    }
+
+
     @Override
     public void start(Stage primaryStage) throws Exception{
         this.primaryStage = primaryStage;
-        db.connect();
+        dbConnect.connect();
         //Locale.setDefault(new Locale("fr", "FR"));
         System.out.println("Locale set to: " + Locale.getDefault());
         loginBundle = ResourceBundle.getBundle("scheduler/Bundle");
-        db.printTable("user");
+        dbConnect.printTable("user");
         showLoginScreen();
         bypassLogin();
-        //System.out.println(sqlParser.checkIfInTable("dog", "userName", "user"));
-        //System.out.println(sqlParser.nowUtcAsString());
-
-        //sqlParser.prepareUserUpdate(111,"admin","admin", 1, "mike",
-        //        "2016-11-02 01:01:01", "2016-11-02 01:01:01", "mike");
-        //System.out.println("This lowest available customerId is: " + sqlParser.findLowestAvailableID("customer"));
 
     }
 
 
     public void stop(){
-        db.disconnect();
+        dbConnect.disconnect();
     }
 
 
@@ -77,10 +83,9 @@ public class MainApp extends Application {
         try {
             root = FXMLLoader.load(getClass().getResource("view/HomeScreen.fxml"));
 
-            //HomeScreenController homeScreenController = new HomeScreenController(currentUserName);
             System.out.println("When showHomeScreen is called the currentUserName is: " + currentUserName);
 
-            homeScreenController.setMainApp(this);
+            homeScreenController.setMainApp();
             homeScreenController.setCurrentUserName(currentUserName);
             System.out.println("homeScreenController.getCurrentUserName() is: " + homeScreenController.getCurrentUserName());
         } catch (IOException e) {
@@ -93,7 +98,7 @@ public class MainApp extends Application {
     }
 
 
-    public void showAddCustomerScreen(String currentUserName) throws IOException {
+    public ModifyCustomerController showAddCustomerScreen(String currentUserName) throws IOException {
 
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(MainApp.class.getResource("view/ModifyCustomer.fxml"));
@@ -101,21 +106,65 @@ public class MainApp extends Application {
 
         Stage dialogStage = new Stage();
         dialogStage.setTitle("Add Customer");
+
         dialogStage.initModality(Modality.WINDOW_MODAL);
         dialogStage.initOwner(primaryStage);
         Scene scene = new Scene(page, 550, 500);
         dialogStage.setScene(scene);
 
         ModifyCustomerController controller = loader.getController();
-        controller.setMainApp(this);
         controller.setCurrentUserName(currentUserName);
-        controller.setSqlParser(getSqlParser(), currentUserName);
         controller.setModifyCustomerScreenStage(dialogStage);
+        controller.setNewCustomer(true);
+        controller.setCustomerIdField(valueOf(controller.findLowestAvailableID("customer")));
+
         controller.setTitleLabel("Add Customer");
+
         System.out.println("The currentUserName passed to showAddCustomerScreen of MainApp is: " + currentUserName);
         System.out.println("The currentUserName of the Add customer screen is: " + controller.getCurrentUserName());
 
         dialogStage.showAndWait();
+        return controller;
+    }
+
+
+    public ModifyCustomerController showModifyCustomerScreen(String currentUserName, Customer customer) throws IOException {
+
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(MainApp.class.getResource("view/ModifyCustomer.fxml"));
+        VBox page = (VBox) loader.load();
+
+        Stage dialogStage = new Stage();
+
+        dialogStage.setTitle("Modify Customer");
+
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(primaryStage);
+        Scene scene = new Scene(page, 550, 500);
+        dialogStage.setScene(scene);
+
+        ModifyCustomerController controller = loader.getController();
+        controller.setCurrentUserName(currentUserName);
+        controller.setSelectedCustomer(customer);
+        controller.setModifyCustomerScreenStage(dialogStage);
+        controller.setNewCustomer(false);
+        controller.setCustomerIdField(String.valueOf(customer.getCustomerId()));
+        controller.setNameField(customer.getCustomerName());
+        controller.setStreet1Field(customer.getStreet1());
+        controller.setStreet2Field(customer.getStreet2());
+        controller.setCityField(customer.getCity());
+        controller.setCountryField(customer.getCountry());
+        controller.setPostalCodeField(customer.getPostalCode());
+        controller.setPhoneNumberField(customer.getPhone());
+
+
+        controller.setTitleLabel("Modify Customer");
+
+        System.out.println("The currentUserName passed to showAddCustomerScreen of MainApp is: " + currentUserName);
+        System.out.println("The currentUserName of the Add customer screen is: " + controller.getCurrentUserName());
+
+        dialogStage.showAndWait();
+        return controller;
     }
 
 
@@ -125,7 +174,7 @@ public class MainApp extends Application {
 
 
     public static DbConnection getDb() {
-        return db;
+        return dbConnect;
     }
 
     public static SQLParser getSqlParser() {

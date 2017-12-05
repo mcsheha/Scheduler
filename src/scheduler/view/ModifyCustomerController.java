@@ -5,9 +5,9 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import scheduler.MainApp;
 import scheduler.Utilities.SQLParser;
+import scheduler.model.Customer;
+import scheduler.model.DbConnection;
 
-import javax.xml.soap.Text;
-import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -57,11 +57,18 @@ public class ModifyCustomerController {
 
     private Stage modifyCustomerScreenStage;
 
-    private static MainApp mainApp;
-
-    private static SQLParser sqlParser;
+    //private static MainApp mainApp;
 
     private static String currentUserName;
+
+    private boolean isNewCustomer = true;
+
+    private Customer selectedCustomer;
+
+    private static Connection dbConnect;
+
+    private static HomeScreenController homeScreenController;
+
 
 
     @FXML
@@ -71,10 +78,10 @@ public class ModifyCustomerController {
     }
 
     public void initialize(){
-        //sqlParser.setCurrentUserName(currentUserName);
-        System.out.println("The currentUserName of sqlParser after initializing ModifyCustomerController is: " + sqlParser.getCurrentUserName());
-        customerIdField.setText(String.valueOf(findLowestAvailableID("customer")));
+        dbConnect = DbConnection.getInstance().getConnection();
+        homeScreenController = HomeScreenController.getInstance();
 
+        //System.out.println("The currentUserName of sqlParser after initializing ModifyCustomerController is: " + sqlParser.getCurrentUserName());
 
     }
 
@@ -82,15 +89,25 @@ public class ModifyCustomerController {
         this.modifyCustomerScreenStage = dialogStage;
     }
 
-    public void setMainApp (MainApp mainApp) {
-        this.mainApp = mainApp;
+    //public void setMainApp (MainApp mainApp) {
+    //    this.mainApp = mainApp;
+    //}
+/*
+
+    public void setMainApp () {
+        this.mainApp = MainApp.getInstance();
+    }
+*/
+
+
+    public boolean isNewCustomer() {
+        return isNewCustomer;
     }
 
-    public void setSqlParser (SQLParser sqlParser, String userName) {
-        this.sqlParser = sqlParser;
-        this.currentUserName = userName;
-    }
 
+    public void setNewCustomer(boolean newCustomer) {
+        isNewCustomer = newCustomer;
+    }
 
 
     public void setTitleLabel(String label) {
@@ -98,6 +115,13 @@ public class ModifyCustomerController {
     }
 
 
+    public Customer getSelectedCustomer() {
+        return selectedCustomer;
+    }
+
+    public void setSelectedCustomer(Customer selectedCustomer) {
+        this.selectedCustomer = selectedCustomer;
+    }
 
     public boolean isInputValid() {
         String errorMessage = "";
@@ -180,31 +204,61 @@ public class ModifyCustomerController {
                 System.out.println("The addressId is not greater than, or equal to 1");
             }
 
-            String sql = "INSERT INTO customer (customerId, customerName, addressId, active, createDate, " +
-                    "createdBy, lastUpdate, lastUpdateBy) VALUES (?,?,?,?,?,?,?,?)";
+            // add new customer to database
+            if (isNewCustomer) {
 
-            PreparedStatement psmt = null;
+                String sql = "INSERT INTO customer (customerId, customerName, addressId, active, createDate, " +
+                        "createdBy, lastUpdate, lastUpdateBy) VALUES (?,?,?,?,?,?,?,?)";
 
-            try {
-                Connection dBase = mainApp.getDb().getConnection();
-                psmt = dBase.prepareStatement(sql);
-                psmt.setInt(1, customerId);
-                psmt.setString(2, name);
-                psmt.setInt(3, addressId);
-                psmt.setInt(4, isActive);
-                psmt.setString(5, nowUtcAsString());
-                psmt.setString(6, currentUser);
-                psmt.setString(7, nowUtcAsString());
-                psmt.setString(8, currentUser);
-                psmt.executeUpdate();
-                modifyCustomerScreenStage.close();
-                HomeScreenController.addToCustomerList(customerId, name);
+                PreparedStatement psmt = null;
 
-            } catch (SQLException e) {
-                e.printStackTrace();
+                try {
+                    psmt = dbConnect.prepareStatement(sql);
+                    psmt.setInt(1, customerId);
+                    psmt.setString(2, name);
+                    psmt.setInt(3, addressId);
+                    psmt.setInt(4, isActive);
+                    psmt.setString(5, nowUtcAsString());
+                    psmt.setString(6, currentUser);
+                    psmt.setString(7, nowUtcAsString());
+                    psmt.setString(8, currentUser);
+                    psmt.executeUpdate();
+                    modifyCustomerScreenStage.close();
+                    HomeScreenController.getInstance().addToCustomerList(customerId, name, addressId);
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+            // modifying existing customer, check current data against existing data
+            } else {
+                String sql = "UPDATE customer SET customerName = ?, addressId = ?, active = ?, lastUpdate = ?, " +
+                        "lastUpdateBy = ? WHERE customerId = ?";
+
+                PreparedStatement psmt = null;
+                customerId = Integer.valueOf(customerIdField.getText());
+
+                try {
+                    psmt = dbConnect.prepareStatement(sql);
+                    psmt.setString(1, name);
+                    psmt.setInt(2, addressId);
+                    psmt.setInt (3, isActive);
+                    psmt.setString (4, nowUtcAsString());
+                    psmt.setString (5, currentUser);
+                    psmt.setInt (6, customerId);
+                    psmt.executeUpdate();
+                    modifyCustomerScreenStage.close();
+                    // need to edit information from local observableList customerList in HomeScreenController
+                    //HomeScreenController.getInstance().modifyCustomerInCustomerList(customerId, name, addressId);
+                    homeScreenController.updateTable(customerId, name, addressId);
+                    // refresh show info
+
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
             }
-
-
         }
 
     }
@@ -220,12 +274,11 @@ public class ModifyCustomerController {
 
     public boolean checkIfInTable(String searchTerm, String columnName, String tableName) {
         boolean rtn = false;
-        Connection dBase = mainApp.getDb().getConnection();
 
         String queryString = "SELECT " + columnName + " FROM " + tableName;
 
         try {
-            Statement statement = dBase.prepareStatement(queryString);
+            Statement statement = dbConnect.prepareStatement(queryString);
             statement.executeQuery(queryString);
             ResultSet rs = statement.getResultSet();
 
@@ -242,7 +295,6 @@ public class ModifyCustomerController {
     }
 
     public int findLowestAvailableID (String tableName) {
-        Connection dBase = MainApp.getDb().getConnection();
 
         String columnName = tableName + "Id";
         String queryString = "SELECT " + columnName + " FROM " + tableName +";";
@@ -250,7 +302,7 @@ public class ModifyCustomerController {
         ArrayList<Integer> arrayList = new ArrayList<>();
 
         try {
-            Statement statement = dBase.prepareStatement(queryString);
+            Statement statement = dbConnect.prepareStatement(queryString);
             statement.executeQuery(queryString);
             ResultSet rs = statement.getResultSet();
 
@@ -275,13 +327,12 @@ public class ModifyCustomerController {
     // If not already in table calls addCountry and returns new country ID.
     public int getCountryId(String country) {
         int countryId = 0;
-        Connection dBase = mainApp.getDb().getConnection();
         String queryString = "SELECT countryId FROM country where country = " + "'" + country + "';";
 
         int storedCountryId = 0;
         if (checkIfInTable(country, "country", "country")) {
             try {
-                PreparedStatement psmt = dBase.prepareStatement(queryString);
+                PreparedStatement psmt = dbConnect.prepareStatement(queryString);
                 psmt.executeQuery();
                 ResultSet rs = psmt.getResultSet();
 
@@ -312,8 +363,7 @@ public class ModifyCustomerController {
         PreparedStatement psmt = null;
 
         try {
-            Connection dBase = mainApp.getDb().getConnection();
-            psmt = dBase.prepareStatement(sql);
+            psmt = dbConnect.prepareStatement(sql);
             psmt.setInt(1, countryId);
             psmt.setString(2, countryToAdd);
             psmt.setString(3, nowUtcAsString());
@@ -333,13 +383,12 @@ public class ModifyCustomerController {
     // If not already in table calls addCity and returns new city ID.
     public int getCityId(String city, int countryId) {
         int cityId = 0;
-        Connection dBase = mainApp.getDb().getConnection();
         String queryString = "SELECT cityId FROM city where city = " + "'" + city + "';";
 
         int storedCityId = 0;
         if (checkIfInTable(city, "city", "city")) {
             try {
-                PreparedStatement psmt = dBase.prepareStatement(queryString);
+                PreparedStatement psmt = dbConnect.prepareStatement(queryString);
                 psmt.executeQuery();
                 ResultSet rs = psmt.getResultSet();
 
@@ -369,8 +418,7 @@ public class ModifyCustomerController {
         PreparedStatement psmt = null;
 
         try {
-            Connection dBase = mainApp.getDb().getConnection();
-            psmt = dBase.prepareStatement(sql);
+            psmt = dbConnect.prepareStatement(sql);
             psmt.setInt(1, cityId);
             psmt.setString(2, cityToAdd);
             psmt.setInt(3, countryId);
@@ -391,13 +439,12 @@ public class ModifyCustomerController {
     // If not already in table calls addAddress and returns new address ID.
     public int getAddressId(String address, String address2, int cityId, String postalCode, String phone) {
         int addressId = 0;
-        Connection dBase = mainApp.getDb().getConnection();
         String queryString = "SELECT addressId FROM address where address = " + "'" + address + "';";
 
         int storedAddressId = 0;
         if (checkIfInTable(address, "address", "address")) {
             try {
-                PreparedStatement psmt = dBase.prepareStatement(queryString);
+                PreparedStatement psmt = dbConnect.prepareStatement(queryString);
                 psmt.executeQuery();
                 ResultSet rs = psmt.getResultSet();
 
@@ -427,8 +474,7 @@ public class ModifyCustomerController {
         PreparedStatement psmt = null;
 
         try {
-            Connection dBase = mainApp.getDb().getConnection();
-            psmt = dBase.prepareStatement(sql);
+            psmt = dbConnect.prepareStatement(sql);
             psmt.setInt(1, addressId);
             psmt.setString(2, addressToAdd);
             psmt.setString(3, address2ToAdd);
@@ -444,6 +490,14 @@ public class ModifyCustomerController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return addressId;
+    }
+
+    private int customerIdToAddress (int customerId) {
+        int addressId = -1;
+        String sql = "SELECT FROM ";
+
+
         return addressId;
     }
 
@@ -464,6 +518,71 @@ public class ModifyCustomerController {
 
     }
 
+    //setters and getter for TextField text
+    public String getCustomerIdField() {
+        return customerIdField.toString();
+    }
+
+    public void setCustomerIdField(String customerIdField) {
+        this.customerIdField.setText(customerIdField);
+    }
+
+    public String getNameField() {
+        return nameField.toString();
+    }
+
+    public void setNameField(String nameField) {
+        this.nameField.setText(nameField);
+    }
+
+
+    public String getStreet1Field() {
+        return street1Field.toString();
+    }
+
+    public void setStreet1Field(String street1Field) {
+        this.street1Field.setText(street1Field);
+    }
+
+    public String getStreet2Field() {
+        return street2Field.toString();
+    }
+
+    public void setStreet2Field(String street2Field) {
+        this.street2Field.setText(street2Field);
+    }
+
+    public String getCityField() {
+        return cityField.toString();
+    }
+
+    public void setCityField(String cityField) {
+        this.cityField.setText(cityField);
+    }
+
+    public String getCountryField() {
+        return countryField.toString();
+    }
+
+    public void setCountryField(String countryField) {
+        this.countryField.setText(countryField);
+    }
+
+    public String getPostalCodeField() {
+        return postalCodeField.toString();
+    }
+
+    public void setPostalCodeField(String postalCodeField) {
+        this.postalCodeField.setText(postalCodeField);
+    }
+
+    public String getPhoneNumberField() {
+        return phoneNumberField.toString();
+    }
+
+    public void setPhoneNumberField(String phoneNumberField) {
+        this.phoneNumberField.setText(phoneNumberField);
+    }
 }
 
 

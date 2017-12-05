@@ -2,20 +2,16 @@ package scheduler.view;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import scheduler.MainApp;
-import scheduler.model.Customer;
+import scheduler.model.*;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Optional;
 
 
 public class HomeScreenController {
@@ -44,9 +40,14 @@ public class HomeScreenController {
     @FXML
     private TableColumn<Customer, String> customerNameColumn;
 
+    private static HomeScreenController firstInstance = null;
+
     public static ObservableList<Customer> customerList;
+    public static Connection dbConnect;
 
-
+    public static ArrayList<Address> addressList;
+    public static ArrayList<City> cityList;
+    public static ArrayList<Country> countryList;
 
     private static MainApp mainApp;
     private static String currentUserName;
@@ -55,9 +56,15 @@ public class HomeScreenController {
     public void initialize(){
         choiceBox.getItems().addAll("Weekly", "Monthly");
         choiceBox.setValue("Weekly");
-        populateCustomerTable();
+        dbConnect = DbConnection.getInstance().getConnection();
 
         System.out.println("The current user when HomeScreenController is first initialized is: " + currentUserName);
+        setTheTable();
+
+    }
+
+    public void setTheTable () {
+        populateCustomerList();
 
         //ID column
         customerIdColumn.setCellValueFactory(cellData -> cellData.getValue().customerIdProperty().asObject());
@@ -66,6 +73,8 @@ public class HomeScreenController {
         customerNameColumn.setCellValueFactory(cellData -> cellData.getValue().customerNameProperty());
 
         customerTable.setItems(customerList);
+        Collections.sort(customerList);
+
 
         customerTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> showCustomerDetails(newValue));
@@ -73,9 +82,21 @@ public class HomeScreenController {
     }
 
 
-    public void setMainApp (MainApp mainApp) {
-        this.mainApp = mainApp;
+    //public void setMainApp (MainApp mainApp) {
+    //    this.mainApp = mainApp;
+    //}
+
+    public static HomeScreenController getInstance() {
+        if (firstInstance == null) {
+            firstInstance = new HomeScreenController();
+        }
+        return firstInstance;
     }
+
+    public void setMainApp () {
+        this.mainApp = MainApp.getInstance();
+    }
+
 
     @FXML
     public void showAddPerson() throws IOException{
@@ -85,23 +106,23 @@ public class HomeScreenController {
 
 
 
-    public void populateCustomerTable () {
+    public void populateCustomerList() {
 
         ObservableList<Customer> customers = FXCollections.observableArrayList();
-        Connection dBase = mainApp.getDb().getConnection();
-        String queryString = "SELECT customerId, customerName FROM customer;";
+        String queryString = "SELECT customerId, customerName, addressId FROM customer;";
 
         try {
 
-            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
             psmt.executeQuery();
             ResultSet rs = psmt.getResultSet();
 
             while (rs.next()) {
                 int customerID = rs.getInt ("customerId");
                 String customerName = rs.getString("customerName");
+                int addressId = rs.getInt("addressId");
                 //System.out.println(customerID + "\t" + customerName);
-                customers.add(new Customer(customerID, customerName));
+                customers.add(new Customer(customerID, customerName, addressId));
             }
         }
         catch (SQLException e) {
@@ -110,17 +131,18 @@ public class HomeScreenController {
         this.customerList = customers;
     }
 
-    public static void addToCustomerList (int id, String name) {
-        customerList.add(new Customer (id, name));
+    public void addToCustomerList (int id, String name, int addressId) {
+        customerList.add(new Customer (id, name, addressId));
+        Collections.sort(customerList);
+
     }
 
     private String isCustomerActive (Customer customer) {
         int active = -1;
-        Connection dBase = mainApp.getDb().getConnection();
         String queryString = "SELECT active FROM customer WHERE customerId = "
-                + customer.getId() + ";";
+                + customer.getCustomerId() + ";";
         try {
-            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
             psmt.executeQuery();
             ResultSet rs = psmt.getResultSet();
 
@@ -152,7 +174,7 @@ public class HomeScreenController {
 
     private void showCustomerDetails (Customer customer) {
         if (customer != null) {
-                customerIdField.setText(customer.getId().toString());
+                customerIdField.setText(String.valueOf(customer.getCustomerId()));
                 customerInfoField.setText(getCustomerInfo(customer));
                 customerActiveField.setText(isCustomerActive(customer));
         }
@@ -177,12 +199,11 @@ public class HomeScreenController {
         int cityId = -1;
         int countryId = -1;
 
-        Connection dBase = mainApp.getDb().getConnection();
         String queryString = "SELECT * FROM customer WHERE customerId = "
-                + customer.getId() + ";";
+                + customer.getCustomerId() + ";";
 
         try {
-            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
             psmt.executeQuery();
             ResultSet rs = psmt.getResultSet();
 
@@ -198,7 +219,7 @@ public class HomeScreenController {
 
         queryString = "SELECT * FROM address WHERE addressId = " + addressId + ";";
         try {
-            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
             psmt.executeQuery();
             ResultSet rs = psmt.getResultSet();
 
@@ -216,7 +237,7 @@ public class HomeScreenController {
 
         queryString = "SELECT city, countryId FROM city WHERE cityId = " + cityId + ";";
         try {
-            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
             psmt.executeQuery();
             ResultSet rs = psmt.getResultSet();
 
@@ -232,7 +253,7 @@ public class HomeScreenController {
 
         queryString = "SELECT country FROM country WHERE countryId = " + countryId + ";";
         try {
-            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
             psmt.executeQuery();
             ResultSet rs = psmt.getResultSet();
 
@@ -255,9 +276,110 @@ public class HomeScreenController {
                         postalCode + "\n" +
                         phone;
 
-
-        //System.out.println("This is the customer Info: \n" + customerInfo);
         return customerInfo;
+    }
+
+
+
+    @FXML
+    public void handleDeleteCustomer () {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Are You Sure?");
+        alert.setHeaderText("It is recommended to set a customer to inactive instead of deleting.");
+        alert.setContentText("Deleting a customer can not be undone.");
+
+        ButtonType buttonMakeInactive = new ButtonType("Set Inactive");
+        ButtonType buttonConfirmDelete = new ButtonType("Delete");
+        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(buttonMakeInactive, buttonConfirmDelete, buttonTypeCancel);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == buttonMakeInactive){
+            makeCustomerInactive();
+        } else if (result.get() == buttonConfirmDelete) {
+            deleteCustomer();
+        } else {
+            // ... user chose CANCEL or closed the dialog
+        }
+    }
+
+
+    private void makeCustomerInactive() {
+        int customerId = -1;
+        Customer customer = customerTable.getSelectionModel().getSelectedItem();
+        customerId = customer.getCustomerId();
+
+        String sql = "UPDATE customer SET active = 0 WHERE customerId = " + customerId + ";";
+
+        try {
+            PreparedStatement psmt = dbConnect.prepareStatement(sql);
+            psmt.execute();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void deleteCustomer () {
+
+        int customerId = -1;
+        Customer customer = customerTable.getSelectionModel().getSelectedItem();
+        customerId = customer.getCustomerId();
+
+        String sql = "DELETE FROM customer WHERE customerId = " + customerId + ";";
+
+        try {
+            PreparedStatement psmt = dbConnect.prepareStatement(sql);
+            psmt.execute();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // also delete from local customer list
+        customerList.remove(customer);
+    }
+
+    @FXML
+    public void handleModifyCustomer() throws IOException  {
+        Customer customer = customerTable.getSelectionModel().getSelectedItem();
+        if (customer == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("No Customer Selected");
+            alert.setHeaderText("No Customer Selected");
+            alert.setContentText("You must select a customer from the table.");
+
+            alert.showAndWait();
+        }
+        else {
+            ModifyCustomerController controller = mainApp.showModifyCustomerScreen(currentUserName, customer);
+
+        }
+
+    }
+
+
+    public void updateTable (int customerId, String customerName, int addressId) {
+        //customerTable.setItems(customerList);
+        //customerList.remove(1,3); <- this worked
+        System.out.println("The customer list contains " + customerList.size() + " customers.");
+
+
+        for (Customer c : customerList) {
+            if (c.getCustomerId() == customerId) {
+                customerList.remove(c);
+                customerList.add(new Customer(customerId, customerName, addressId));
+                // now sort the table on customerId.
+                Collections.sort(customerList);
+                return;
+            }
+
+        }
+
+
+
     }
 
 

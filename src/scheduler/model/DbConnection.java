@@ -4,6 +4,9 @@ import java.sql.*;
 import java.util.Properties;
 
 public class DbConnection {
+
+    private static DbConnection firstInstance = null;
+
     // init database constants
     private static final String DATABASE_DRIVER = "com.mysql.jdbc.Driver";
     private static final String DATABASE_URL = "jdbc:mysql://52.206.157.109:3306/U03S4L";
@@ -14,6 +17,15 @@ public class DbConnection {
     public Connection getConnection() {
         return connection;
     }
+
+    public static DbConnection getInstance() {
+        if (firstInstance == null) {
+            firstInstance = new DbConnection();
+        }
+        return firstInstance;
+    }
+
+
 
     public void setConnection(Connection connection) {
         this.connection = connection;
@@ -61,19 +73,6 @@ public class DbConnection {
                 e.printStackTrace();
                 System.out.println("Could not disconnect from DB");
             }
-        }
-
-    }
-
-    public void sendSQL (String sql){
-        try {
-            PreparedStatement statement = this.getConnection().prepareStatement(sql);
-            System.out.println("Sending: " + sql);
-            // statement.execute();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Unable to send " + sql + " check syntax.");
         }
 
     }
