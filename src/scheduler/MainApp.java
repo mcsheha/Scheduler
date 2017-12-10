@@ -1,6 +1,5 @@
 package scheduler;
 
-import com.sun.org.apache.xpath.internal.SourceTree;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,12 +11,11 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import scheduler.Utilities.SQLParser;
 import scheduler.model.Customer;
-import scheduler.view.HomeScreenController;
-import scheduler.view.LoginController;
+import scheduler.controller.HomeScreenController;
+import scheduler.controller.LoginController;
 import scheduler.model.DbConnection;
-import scheduler.view.ModifyCustomerController;
+import scheduler.controller.ModifyCustomerController;
 
 import static java.lang.String.valueOf;
 
@@ -31,8 +29,7 @@ public class MainApp extends Application {
     private static HomeScreenController homeScreenController = new HomeScreenController();
     private static ModifyCustomerController modifyCustomerController = new ModifyCustomerController();
     private ResourceBundle loginBundle;
-    private static SQLParser sqlParser = new SQLParser();
-    private static String currentUsrName;
+    private static String currentUserName;
 
 
     public static MainApp getInstance() {
@@ -77,7 +74,7 @@ public class MainApp extends Application {
     }
 
 
-    public void showHomeScreen(String currentUserName) {
+    public void showHomeScreen() {
 
         Parent root = null;
         try {
@@ -85,16 +82,16 @@ public class MainApp extends Application {
 
             System.out.println("When showHomeScreen is called the currentUserName is: " + currentUserName);
 
-            homeScreenController.setMainApp();
+            //homeScreenController.setMainApp();
             homeScreenController.setCurrentUserName(currentUserName);
-            System.out.println("homeScreenController.getCurrentUserName() is: " + homeScreenController.getCurrentUserName());
+            //System.out.println("homeScreenController.getCurrentUserName() is: " + homeScreenController.getCurrentUserName());
         } catch (IOException e) {
             e.printStackTrace();
         }
         primaryStage.setTitle("Scheduler");
         primaryStage.setScene(new Scene(root,900, 750));
         primaryStage.show();
-        System.out.println(currentUsrName);
+        System.out.println(currentUserName);
     }
 
 
@@ -156,6 +153,7 @@ public class MainApp extends Application {
         controller.setCountryField(customer.getCountry());
         controller.setPostalCodeField(customer.getPostalCode());
         controller.setPhoneNumberField(customer.getPhone());
+        controller.setIsActiveCheckBox(customer.isCustomerActive());
 
 
         controller.setTitleLabel("Modify Customer");
@@ -172,19 +170,24 @@ public class MainApp extends Application {
         launch(args);
     }
 
+    public static String getCurrentUserName() {
+        return currentUserName;
+    }
+
+    public static void setCurrentUserName(String currentUserName) {
+        MainApp.currentUserName = currentUserName;
+    }
 
     public static DbConnection getDb() {
         return dbConnect;
     }
 
-    public static SQLParser getSqlParser() {
-        return sqlParser;
-    }
 
 
     private void bypassLogin (){
         //this.currentUsrName = "michael";
-        showHomeScreen("mike");
+        this.currentUserName = "Mike";
+        showHomeScreen();
     }
 
 

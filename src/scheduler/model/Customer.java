@@ -147,6 +147,34 @@ public class Customer implements Comparable <Customer> {
         this.active = active;
     }
 
+    public boolean isCustomerActive () {
+        Connection dBase = DbConnection.getInstance().getConnection();
+        int activeInt = -1;
+        boolean bool = false;
+
+        String queryString = "SELECT active FROM customer WHERE customerId = " + customerId + ";";
+
+        try {
+            PreparedStatement psmt = dBase.prepareStatement(queryString);
+            psmt.executeQuery();
+            ResultSet rs = psmt.getResultSet();
+
+            while (rs.next()) {
+                activeInt = rs.getInt ("active");
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (activeInt == 1) {
+            bool = true;
+        }
+            return bool;
+
+    }
+
+
+
     public LocalDateTime getCreateDate() {
         return createDate;
     }

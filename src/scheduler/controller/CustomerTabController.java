@@ -1,23 +1,29 @@
-package scheduler.view;
+package scheduler.controller;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import scheduler.MainApp;
-import scheduler.model.*;
+import scheduler.model.Customer;
+import scheduler.model.DbConnection;
 
 import java.io.IOException;
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 
+import static java.time.ZoneOffset.UTC;
 
-public class HomeScreenController {
+public class CustomerTabController {
 
     @FXML
-    private ChoiceBox<String> choiceBox;
+    private AnchorPane customerTab;
 
     @FXML
     private Button addCustomer;
@@ -40,23 +46,21 @@ public class HomeScreenController {
     @FXML
     private TableColumn<Customer, String> customerNameColumn;
 
-    private static HomeScreenController firstInstance = null;
+    private static CustomerTabController firstInstance = null;
 
     public static ObservableList<Customer> customerList;
     public static Connection dbConnect;
 
-    public static ArrayList<Address> addressList;
-    public static ArrayList<City> cityList;
-    public static ArrayList<Country> countryList;
 
     private static MainApp mainApp;
     private static String currentUserName;
 
 
     public void initialize(){
-        choiceBox.getItems().addAll("Weekly", "Monthly");
-        choiceBox.setValue("Weekly");
+
         dbConnect = DbConnection.getInstance().getConnection();
+        this.mainApp = MainApp.getInstance();
+        this.currentUserName = mainApp.getCurrentUserName();
 
         System.out.println("The current user when HomeScreenController is first initialized is: " + currentUserName);
         setTheTable();
@@ -86,9 +90,9 @@ public class HomeScreenController {
     //    this.mainApp = mainApp;
     //}
 
-    public static HomeScreenController getInstance() {
+    public static CustomerTabController getInstance() {
         if (firstInstance == null) {
-            firstInstance = new HomeScreenController();
+            firstInstance = new CustomerTabController();
         }
         return firstInstance;
     }
@@ -99,7 +103,7 @@ public class HomeScreenController {
 
 
     @FXML
-    public void showAddPerson() throws IOException{
+    public void showAddPerson() throws IOException {
         mainApp.showAddCustomerScreen(currentUserName);
 
     }
@@ -174,9 +178,9 @@ public class HomeScreenController {
 
     private void showCustomerDetails (Customer customer) {
         if (customer != null) {
-                customerIdField.setText(String.valueOf(customer.getCustomerId()));
-                customerInfoField.setText(getCustomerInfo(customer));
-                customerActiveField.setText(isCustomerActive(customer));
+            customerIdField.setText(String.valueOf(customer.getCustomerId()));
+            customerInfoField.setText(getCustomerInfo(customer));
+            customerActiveField.setText(isCustomerActive(customer));
         }
         else {
             customerIdField.setText("");
@@ -270,11 +274,11 @@ public class HomeScreenController {
         }
 
         customerInfo = name + "\n" +
-                        address1 + "\n" +
-                        city + "\n" +
-                        country + "\n" +
-                        postalCode + "\n" +
-                        phone;
+                address1 + "\n" +
+                city + "\n" +
+                country + "\n" +
+                postalCode + "\n" +
+                phone;
 
         return customerInfo;
     }
@@ -382,9 +386,32 @@ public class HomeScreenController {
 
     }
 
+    //returns current date and time in UTC as a string.
+    public String nowUtcAsString() {
 
+        LocalDateTime currentDateTime = LocalDateTime.now(UTC);
+        return currentDateTime.toString().replace("T", " ").substring(0,21);
+
+    }
+
+
+    public String getCustomerName(int customerId) {
+        String customerName = null;
+        String queryString = "SELECT customerName FROM customer WHERE customerId = " + customerId + ";";
+
+        try {
+            PreparedStatement psmt = dbConnect.prepareStatement(queryString);
+            psmt.executeQuery();
+            ResultSet rs = psmt.getResultSet();
+
+            while (rs.next()) {
+                customerName = rs.getString("customerId");
+            }
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+        return customerName;
+    }
 
 }
-
-
-

@@ -1,4 +1,4 @@
-package scheduler.view;
+package scheduler.controller;
 
 import javafx.fxml.FXML;
 
@@ -112,7 +112,8 @@ public class LoginController {
         // The passwords match
         if(Objects.equals(parsedPassword, storedPassword)){
             System.out.println("The passwords match!");
-            mainApp.showHomeScreen(parsedUsername);
+            mainApp.setCurrentUserName(parsedUsername);
+            mainApp.showHomeScreen();
             //mainApp.setCurrentUser(parsedUsername);
 
         // The passwords do not match

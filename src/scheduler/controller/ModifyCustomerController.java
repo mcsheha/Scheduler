@@ -1,10 +1,8 @@
-package scheduler.view;
+package scheduler.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import scheduler.MainApp;
-import scheduler.Utilities.SQLParser;
 import scheduler.model.Customer;
 import scheduler.model.DbConnection;
 
@@ -13,8 +11,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
-
-import static java.time.ZoneOffset.UTC;
 
 public class ModifyCustomerController {
 
@@ -68,6 +64,7 @@ public class ModifyCustomerController {
     private static Connection dbConnect;
 
     private static HomeScreenController homeScreenController;
+    private static CustomerTabController customerTabController;
 
 
 
@@ -80,6 +77,7 @@ public class ModifyCustomerController {
     public void initialize(){
         dbConnect = DbConnection.getInstance().getConnection();
         homeScreenController = HomeScreenController.getInstance();
+        customerTabController = CustomerTabController.getInstance();
 
         //System.out.println("The currentUserName of sqlParser after initializing ModifyCustomerController is: " + sqlParser.getCurrentUserName());
 
@@ -99,6 +97,10 @@ public class ModifyCustomerController {
     }
 */
 
+
+    public void setIsActiveCheckBox (boolean bool) {
+        isActiveCheckBox.setSelected(bool);
+    }
 
     public boolean isNewCustomer() {
         return isNewCustomer;
@@ -218,13 +220,13 @@ public class ModifyCustomerController {
                     psmt.setString(2, name);
                     psmt.setInt(3, addressId);
                     psmt.setInt(4, isActive);
-                    psmt.setString(5, nowUtcAsString());
+                    psmt.setString(5, customerTabController.nowUtcAsString());
                     psmt.setString(6, currentUser);
-                    psmt.setString(7, nowUtcAsString());
+                    psmt.setString(7, customerTabController.nowUtcAsString());
                     psmt.setString(8, currentUser);
                     psmt.executeUpdate();
                     modifyCustomerScreenStage.close();
-                    HomeScreenController.getInstance().addToCustomerList(customerId, name, addressId);
+                    customerTabController.addToCustomerList(customerId, name, addressId);
 
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -243,14 +245,14 @@ public class ModifyCustomerController {
                     psmt.setString(1, name);
                     psmt.setInt(2, addressId);
                     psmt.setInt (3, isActive);
-                    psmt.setString (4, nowUtcAsString());
+                    psmt.setString (4, customerTabController.nowUtcAsString());
                     psmt.setString (5, currentUser);
                     psmt.setInt (6, customerId);
                     psmt.executeUpdate();
                     modifyCustomerScreenStage.close();
                     // need to edit information from local observableList customerList in HomeScreenController
                     //HomeScreenController.getInstance().modifyCustomerInCustomerList(customerId, name, addressId);
-                    homeScreenController.updateTable(customerId, name, addressId);
+                    customerTabController.updateTable(customerId, name, addressId);
                     // refresh show info
 
 
@@ -366,9 +368,9 @@ public class ModifyCustomerController {
             psmt = dbConnect.prepareStatement(sql);
             psmt.setInt(1, countryId);
             psmt.setString(2, countryToAdd);
-            psmt.setString(3, nowUtcAsString());
+            psmt.setString(3, customerTabController.nowUtcAsString());
             psmt.setString(4, currentUser);
-            psmt.setString(5, nowUtcAsString());
+            psmt.setString(5, customerTabController.nowUtcAsString());
             psmt.setString(6, currentUser);
             psmt.executeUpdate();
 
@@ -422,9 +424,9 @@ public class ModifyCustomerController {
             psmt.setInt(1, cityId);
             psmt.setString(2, cityToAdd);
             psmt.setInt(3, countryId);
-            psmt.setString(4, nowUtcAsString());
+            psmt.setString(4, customerTabController.nowUtcAsString());
             psmt.setString(5, currentUser);
-            psmt.setString(6, nowUtcAsString());
+            psmt.setString(6, customerTabController.nowUtcAsString());
             psmt.setString(7, currentUser);
             psmt.executeUpdate();
 
@@ -481,9 +483,9 @@ public class ModifyCustomerController {
             psmt.setInt(4, cityId);
             psmt.setString(5, postalCode);
             psmt.setString(6, phone);
-            psmt.setString(7, nowUtcAsString());
+            psmt.setString(7, customerTabController.nowUtcAsString());
             psmt.setString(8, currentUser);
-            psmt.setString(9, nowUtcAsString());
+            psmt.setString(9, customerTabController.nowUtcAsString());
             psmt.setString(10, currentUser);
             psmt.executeUpdate();
 
@@ -501,6 +503,7 @@ public class ModifyCustomerController {
         return addressId;
     }
 
+/*
 
     //returns current date and time in UTC as a string.
     public String nowUtcAsString() {
@@ -509,6 +512,7 @@ public class ModifyCustomerController {
         return currentDateTime.toString().replace("T", " ").substring(0,21);
 
     }
+*/
 
     //returns current date and time in UTC as a string.
     public String nowLocalAsString () {
