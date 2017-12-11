@@ -6,9 +6,17 @@ import scheduler.controller.AppointmentTabController;
 import scheduler.controller.CustomerTabController;
 import scheduler.controller.HomeScreenController;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 
 public class Appointment {
 
+    // Displayed
     private int appointmentId;
     private int customerId;
     private String title;
@@ -22,6 +30,7 @@ public class Appointment {
     private String createdBy;
     private String lastUpdate;
     private String lastUpdateBy;
+
     private HomeScreenController homeScreenController;
     private AppointmentTabController appointmentTabController;
     private CustomerTabController customerTabController;
@@ -30,8 +39,18 @@ public class Appointment {
     private SimpleStringProperty customerNameProperty;
     private SimpleStringProperty titleProperty;
 
+    // Displayed in Monthly and Weekly Views
+    private String timeColumnString = "";
+    private String customerNameColumnString = "";
+    private String appointmentTypeString = "";
 
-    public Appointment (int appointmentId, int customerId, String title, String description, String location,
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
+
+    private boolean isDummyAppointment = false;
+
+    // not currently used
+    public Appointment (int appointmentId, int customerId, String title, String description, String location, String contact,
                         String url, String start, String end) {
 
         this.appointmentId = appointmentId;
@@ -39,6 +58,7 @@ public class Appointment {
         this.title = title;
         this.description = description;
         this.location = location;
+        this.contact = contact;
         this.url = url;
         this.start = start;
         this.end = end;
@@ -55,6 +75,74 @@ public class Appointment {
         this.titleProperty = new SimpleStringProperty(title);
 
     }
+
+    public Appointment (String timeColumnString, String customerNameColumnString, String appointmentTypeString) {
+        this.timeColumnString = timeColumnString;
+        this.customerNameColumnString = customerNameColumnString;
+        this.appointmentTypeString = appointmentTypeString;
+    }
+
+    public Appointment (String timeColumnString, boolean isDummyAppointment) {
+        this.timeColumnString = timeColumnString;
+        this.isDummyAppointment = true;
+    }
+
+    // used by AppointmentList DB query results
+    public Appointment(int appointmentId, int customerId, String title, String description, String location, String contact,
+                String url, String start, String end, String createDate, String createdBy,
+                String lastUpdate, String lastUpdateBy) {
+            this.appointmentId = appointmentId;
+            this.customerId = customerId;
+            this.title = title;
+            this.description = description;
+            this.location = location;
+            this.contact = contact;
+            this.url = url;
+            this.start = start;
+            this.end = end;
+            String startSub = start.substring(11,16);
+            //System.out.println("The startSub format is: " + startSub);
+
+            this.timeColumnString = startSub;
+            this.customerNameColumnString = getCustomerNameFromDb(customerId);
+            this.appointmentTypeString = title;
+            setStartAndEndDateTime(start, end);
+    }
+
+
+
+    public String getCustomerNameFromDb (int customerId) {
+        String customerName = null;
+        String sql = "SELECT customerName FROM customer WHERE customerId = " + customerId + ";";
+        Connection dbConnect = DbConnection.getInstance().getConnection();
+
+        try {
+            PreparedStatement psmt = dbConnect.prepareStatement(sql);
+            psmt.executeQuery();
+            ResultSet rs = psmt.getResultSet();
+
+            while(rs.next()) {
+                customerName = rs.getString("customerName");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return customerName;
+    }
+
+
+    public void setStartAndEndDateTime (String start, String end) {
+        start = start.substring(0,19);
+        end = end.substring(0,19);
+        System.out.println("Start is: " + start);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        this.startDateTime = LocalDateTime.parse(start, formatter);
+        this.endDateTime = LocalDateTime.parse(end,formatter);
+    }
+
+
 
 
     public int getAppointmentId() {
@@ -198,5 +286,45 @@ public class Appointment {
 
     public void setTitleProperty(String titleProperty) {
         this.titleProperty.set(titleProperty);
+    }
+
+    public String getTimeColumnString() {
+        return timeColumnString;
+    }
+
+    public void setTimeColumnString(String timeColumnString) {
+        this.timeColumnString = timeColumnString;
+    }
+
+    public String getCustomerNameColumnString() {
+        return customerNameColumnString;
+    }
+
+    public void setCustomerNameColumnString(String customerNameColumnString) {
+        this.customerNameColumnString = customerNameColumnString;
+    }
+
+    public String getAppointmentTypeString() {
+        return appointmentTypeString;
+    }
+
+    public void setAppointmentTypeString(String appointmentTypeString) {
+        this.appointmentTypeString = appointmentTypeString;
+    }
+
+    public LocalDateTime getStartDateTime() {
+        return startDateTime;
+    }
+
+    public void setStartDateTime(LocalDateTime startDateTime) {
+        this.startDateTime = startDateTime;
+    }
+
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
+    }
+
+    public void setEndDateTime(LocalDateTime endDateTime) {
+        this.endDateTime = endDateTime;
     }
 }
