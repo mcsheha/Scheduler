@@ -385,6 +385,7 @@ public class CustomerTabController {
 
 
     }
+/*
 
     //returns current date and time in UTC as a string.
     public String nowUtcAsString() {
@@ -393,6 +394,7 @@ public class CustomerTabController {
         return currentDateTime.toString().replace("T", " ").substring(0,21);
 
     }
+*/
 
 
     public String getCustomerName(int customerId) {

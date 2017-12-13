@@ -3,13 +3,19 @@ package scheduler.controller;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import scheduler.MainApp;
 import scheduler.model.Appointment;
-import scheduler.model.AppointmentList;
 import scheduler.model.DbConnection;
-import java.sql.Connection;
+
+import java.io.IOException;
+import java.sql.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,8 +29,11 @@ import java.util.Objects;
 public class AppointmentTabController {
 
     private static AppointmentTabController firstInstance = null;
-    private AppointmentList appointmentList;
+    //private static AppointmentList appointmentList;
+    public static ObservableList<Appointment> localAppointmentList = FXCollections.observableArrayList();
+
     private static Connection dbConnect;
+    private MainApp mainApp;
 
     @FXML
     private ChoiceBox<String> choiceBox;
@@ -32,6 +41,8 @@ public class AppointmentTabController {
     private DatePicker datePicker;
     @FXML
     private Label label;
+    @FXML
+    private Button addAppointmentButton;
     @FXML
     private AnchorPane appointmentsTab;
     @FXML
@@ -56,18 +67,28 @@ public class AppointmentTabController {
         choiceBox.getItems().addAll("Weekly", "Monthly");
         choiceBox.setValue("Weekly");
         dbConnect = DbConnection.getInstance().getConnection();
+        this.mainApp = MainApp.getInstance();
         datePicker.setValue(LocalDate.now());
+        pullAppointmentsFromDb();
         showMonthlyView();
         showWeeklyView();
 
-        this.appointmentList = AppointmentList.getInstance();
+
+/*        addAppointmentButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                try {
+                    showAddAppointment();
+                } catch (IOException i) {
+                    i.printStackTrace();
+                }
+            }
+        });*/
 
 
-
-        // toggle view between monthly and weekly based on user's selection
-        choiceBox.setOnAction((event -> {
-            showView();
-        }));
+                // toggle view between monthly and weekly based on user's selection
+                choiceBox.setOnAction((event -> {
+                    showView();
+                }));
 
         datePicker.setOnAction((event -> {
             setLabelText();
@@ -85,6 +106,46 @@ public class AppointmentTabController {
         } else {
             showWeeklyView();
         }
+
+    }
+
+    @FXML
+    public void handleDelete () {
+        Appointment appointment = treeTableView.getSelectionModel().getSelectedItem().getValue();
+        int appointmentId = appointment.getAppointmentId();
+
+        String sql = "DELETE FROM appointment WHERE appointmentId = " + appointmentId + ";";
+
+        try {
+            PreparedStatement psmt = dbConnect.prepareStatement(sql);
+            psmt.execute();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // also delete from local customer list
+        localAppointmentList.remove(appointment);
+    }
+
+
+    public void handleModifyButton () throws IOException {
+        if (treeTableView.getSelectionModel().getSelectedItem() == null ||
+                treeTableView.getSelectionModel().getSelectedItem().getValue().isDummyAppointment()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("No Appointment Selected");
+            alert.setHeaderText("No Appointment Selected");
+            alert.setContentText("You must select an Appointment from the table.");
+
+            alert.showAndWait();
+        }
+
+        else {
+            Appointment appointment = treeTableView.getSelectionModel().getSelectedItem().getValue();
+            ModifyAppointmentController controller = mainApp.showModifyAppointmentScreen(appointment);
+
+        }
+
     }
 
 
@@ -122,7 +183,7 @@ public class AppointmentTabController {
         }
 
 
-        for (Appointment a : appointmentList.getAppointmentArrayList()) {
+        for (Appointment a : localAppointmentList) {
             if(a.getStartDateTime().isAfter(beginningDateTime) && a.getStartDateTime().isBefore(endingDateTime)) {
                 DayOfWeek d = a.getStartDateTime().getDayOfWeek();
                 if (d.getValue() == 7) {
@@ -253,7 +314,7 @@ public class AppointmentTabController {
         day30.setExpanded(true);
         day31.setExpanded(true);
 
-        for (Appointment a : appointmentList.getAppointmentArrayList()) {
+        for (Appointment a : localAppointmentList) {
             if(a.getStartDateTime().isAfter(beginningDateTime) && a.getStartDateTime().isBefore(endingDateTime)) {
                 int i = a.getStartDateTime().getDayOfMonth();
                 if (i == 1) { day1.getChildren().add(new TreeItem<>(a)); }
@@ -337,7 +398,7 @@ public class AppointmentTabController {
 
 
     public AppointmentTabController () {
-        this.appointmentList = AppointmentList.getInstance();
+        //this.appointmentList = AppointmentList.getInstance();
         this.dbConnect = DbConnection.getInstance().getConnection();
 
     }
@@ -387,11 +448,131 @@ public class AppointmentTabController {
         }
     }
 
+    @FXML
+    public void showAddAppointment() throws IOException {
+        mainApp.showAddAppointmentScreen();
+
+    }
+
+    public void pullAppointmentsFromDb() {
+        //ObservableList<Appointment> tempAppointmentList = FXCollections.observableArrayList();
+        String sql = "SELECT * FROM appointment;";
+        PreparedStatement psmt = null;
+
+
+        try {
+            psmt = dbConnect.prepareStatement(sql);
+            psmt.executeQuery();
+            ResultSet rs = psmt.getResultSet();
+
+            while (rs.next()) {
+                int appointmentId = rs.getInt ("appointmentId");
+                int customerId = rs.getInt("customerId");
+                String title = rs.getString("title");
+                String description = rs.getString("description");
+                String location = rs.getString("location");
+                String contact = rs.getString("contact");
+                String url = rs.getString("url");
+                String start = rs.getString("start");
+                String end = rs.getString("end");
+                String createDate = rs.getString("createDate");
+                String createdBy = rs.getString("createdBy");
+                String lastUpdate = rs.getString("lastUpdate");
+                String lastUpdateBy = rs.getString("lastUpdateBy");
+
+                localAppointmentList.add(new Appointment(appointmentId, customerId, title, description, location,
+                        contact, url, start, end, createDate, createdBy, lastUpdate, lastUpdateBy));
+
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
 
 
 
+    }
 
 
+    public void addToAppointmentList(Appointment appointment) {
+        localAppointmentList.add(appointment);
+    }
+
+    public void removeFromAppointmentList(int appointmentId) {
+        for(Appointment a : localAppointmentList) {
+            if(a.getAppointmentId() == appointmentId) {
+                localAppointmentList.remove(a);
+                System.out.println("Found and removed the appointment!");
+                return;
+            }
+        }
+
+    }
+
+
+    public String getCreateDateTimeAsString(int appointmentId) {
+        String queryString = "SELECT createDate FROM appointment WHERE appointmentId = " + appointmentId + ";";
+        String resultString = "";
+
+        try {
+            Statement statement = dbConnect.prepareStatement(queryString);
+            statement.executeQuery(queryString);
+            ResultSet rs = statement.getResultSet();
+
+            while (rs.next()) {
+                resultString = rs.getString("createDate");
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return resultString;
+    }
+
+
+    public String getCreatedBy(int appointmentId) {
+        String queryString = "SELECT createdBy FROM appointment WHERE appointmentId = " + appointmentId + ";";
+        String resultString = "";
+
+        try {
+            Statement statement = dbConnect.prepareStatement(queryString);
+            statement.executeQuery(queryString);
+            ResultSet rs = statement.getResultSet();
+
+            while (rs.next()) {
+                resultString = rs.getString("createdBy");
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return resultString;
+    }
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

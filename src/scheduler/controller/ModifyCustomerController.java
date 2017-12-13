@@ -8,6 +8,7 @@ import scheduler.model.DbConnection;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
@@ -63,7 +64,6 @@ public class ModifyCustomerController {
 
     private static Connection dbConnect;
 
-    private static HomeScreenController homeScreenController;
     private static CustomerTabController customerTabController;
 
 
@@ -76,7 +76,6 @@ public class ModifyCustomerController {
 
     public void initialize(){
         dbConnect = DbConnection.getInstance().getConnection();
-        homeScreenController = HomeScreenController.getInstance();
         customerTabController = CustomerTabController.getInstance();
 
         //System.out.println("The currentUserName of sqlParser after initializing ModifyCustomerController is: " + sqlParser.getCurrentUserName());
@@ -152,12 +151,13 @@ public class ModifyCustomerController {
             errorMessage += "No valid phone number!\n";
         }
 
+
+
         if (errorMessage.length() == 0) {
             return true;
         }
         else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initOwner(modifyCustomerScreenStage);
             alert.setTitle("Invalid Fields");
             alert.setHeaderText("Please correct invalid fields");
             alert.setContentText(errorMessage);
@@ -173,7 +173,6 @@ public class ModifyCustomerController {
     @FXML
     private void handleCustomerSave () {
         if (isInputValid()){
-            //System.out.println("It's all good, baby!");
             int customerId = findLowestAvailableID("customer");
             String name = nameField.getText();
             String streetAddress1 = street1Field.getText();
@@ -220,9 +219,9 @@ public class ModifyCustomerController {
                     psmt.setString(2, name);
                     psmt.setInt(3, addressId);
                     psmt.setInt(4, isActive);
-                    psmt.setString(5, customerTabController.nowUtcAsString());
+                    psmt.setString(5, HomeScreenController.nowUtcAsString());
                     psmt.setString(6, currentUser);
-                    psmt.setString(7, customerTabController.nowUtcAsString());
+                    psmt.setString(7, HomeScreenController.nowUtcAsString());
                     psmt.setString(8, currentUser);
                     psmt.executeUpdate();
                     modifyCustomerScreenStage.close();
@@ -245,7 +244,7 @@ public class ModifyCustomerController {
                     psmt.setString(1, name);
                     psmt.setInt(2, addressId);
                     psmt.setInt (3, isActive);
-                    psmt.setString (4, customerTabController.nowUtcAsString());
+                    psmt.setString (4, HomeScreenController.nowUtcAsString());
                     psmt.setString (5, currentUser);
                     psmt.setInt (6, customerId);
                     psmt.executeUpdate();
@@ -368,9 +367,9 @@ public class ModifyCustomerController {
             psmt = dbConnect.prepareStatement(sql);
             psmt.setInt(1, countryId);
             psmt.setString(2, countryToAdd);
-            psmt.setString(3, customerTabController.nowUtcAsString());
+            psmt.setString(3, HomeScreenController.nowUtcAsString());
             psmt.setString(4, currentUser);
-            psmt.setString(5, customerTabController.nowUtcAsString());
+            psmt.setString(5, HomeScreenController.nowUtcAsString());
             psmt.setString(6, currentUser);
             psmt.executeUpdate();
 
@@ -424,9 +423,9 @@ public class ModifyCustomerController {
             psmt.setInt(1, cityId);
             psmt.setString(2, cityToAdd);
             psmt.setInt(3, countryId);
-            psmt.setString(4, customerTabController.nowUtcAsString());
+            psmt.setString(4, HomeScreenController.nowUtcAsString());
             psmt.setString(5, currentUser);
-            psmt.setString(6, customerTabController.nowUtcAsString());
+            psmt.setString(6, HomeScreenController.nowUtcAsString());
             psmt.setString(7, currentUser);
             psmt.executeUpdate();
 
@@ -483,9 +482,9 @@ public class ModifyCustomerController {
             psmt.setInt(4, cityId);
             psmt.setString(5, postalCode);
             psmt.setString(6, phone);
-            psmt.setString(7, customerTabController.nowUtcAsString());
+            psmt.setString(7, HomeScreenController.nowUtcAsString());
             psmt.setString(8, currentUser);
-            psmt.setString(9, customerTabController.nowUtcAsString());
+            psmt.setString(9, HomeScreenController.nowUtcAsString());
             psmt.setString(10, currentUser);
             psmt.executeUpdate();
 

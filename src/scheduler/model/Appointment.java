@@ -2,6 +2,7 @@ package scheduler.model;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import scheduler.controller.AppointmentTabController;
 import scheduler.controller.CustomerTabController;
 import scheduler.controller.HomeScreenController;
@@ -31,8 +32,7 @@ public class Appointment {
     private String lastUpdate;
     private String lastUpdateBy;
 
-    private HomeScreenController homeScreenController;
-    private AppointmentTabController appointmentTabController;
+
     private CustomerTabController customerTabController;
 
     private SimpleIntegerProperty startProperty;
@@ -49,7 +49,7 @@ public class Appointment {
 
     private boolean isDummyAppointment = false;
 
-    // not currently used
+    // constructor not currently used
     public Appointment (int appointmentId, int customerId, String title, String description, String location, String contact,
                         String url, String start, String end) {
 
@@ -63,12 +63,10 @@ public class Appointment {
         this.start = start;
         this.end = end;
         this.customerTabController = CustomerTabController.getInstance();
-        this.appointmentTabController = AppointmentTabController.getInstance();
-        this.homeScreenController = HomeScreenController.getInstance();
         this.createdBy = customerTabController.getCurrentUserName();
         this.lastUpdateBy = customerTabController.getCurrentUserName();
-        this.createDate = customerTabController.nowUtcAsString();
-        this.lastUpdate = customerTabController.nowUtcAsString();
+        this.createDate = HomeScreenController.nowUtcAsString();
+        this.lastUpdate = HomeScreenController.nowUtcAsString();
 
         this.startProperty = new SimpleIntegerProperty(Integer.valueOf(start));
         this.customerNameProperty = new SimpleStringProperty(customerTabController.getCustomerName(customerId));
@@ -82,6 +80,7 @@ public class Appointment {
         this.appointmentTypeString = appointmentTypeString;
     }
 
+    // Constructor for dummy appointments used as treeTableView headers... Monday, Tuesday, 1, 2, 3, etc.
     public Appointment (String timeColumnString, boolean isDummyAppointment) {
         this.timeColumnString = timeColumnString;
         this.isDummyAppointment = true;
@@ -110,6 +109,40 @@ public class Appointment {
     }
 
 
+    // Constructor used from add appointment form
+    public Appointment(int appointmentId, int customerId, String title, String description, String location,
+                       String contact, String url, LocalDateTime startDateTime, LocalDateTime endDateTime,
+                       String createDate, String createdBy, String lastUpdate, String lastUpdateBy) {
+        this.appointmentId = appointmentId;
+        this.customerId = customerId;
+        this.title = title;
+        this.description = description;
+        this.location = location;
+        this.contact = contact;
+        this.url = url;
+
+        this.startDateTime = startDateTime;
+        this.endDateTime = endDateTime;
+        this.createDate = createDate;
+        this.createdBy = createdBy;
+        this.lastUpdate = lastUpdate;
+        this.lastUpdateBy = lastUpdateBy;
+
+
+        this.timeColumnString = startDateTime.toString().substring(11,16);
+        System.out.println("this is the format for timeColumnString: " + startDateTime.toString().substring(11,16));
+        this.customerNameColumnString = getCustomerNameFromDb(customerId);
+        this.appointmentTypeString = title;
+
+
+
+        //this.start = start;
+        //this.end = end;
+        //String startSub = start.substring(11,16);
+
+
+    }
+
 
     public String getCustomerNameFromDb (int customerId) {
         String customerName = null;
@@ -134,12 +167,13 @@ public class Appointment {
 
 
     public void setStartAndEndDateTime (String start, String end) {
-        start = start.substring(0,19);
-        end = end.substring(0,19);
-        System.out.println("Start is: " + start);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.startDateTime = LocalDateTime.parse(start, formatter);
-        this.endDateTime = LocalDateTime.parse(end,formatter);
+            start = start.substring(0,16);
+            end = end.substring(0,16);
+            System.out.println("Start is: " + start);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            this.startDateTime = LocalDateTime.parse(start, formatter);
+            this.endDateTime = LocalDateTime.parse(end,formatter);
+
     }
 
 
@@ -326,5 +360,23 @@ public class Appointment {
 
     public void setEndDateTime(LocalDateTime endDateTime) {
         this.endDateTime = endDateTime;
+    }
+
+    public boolean isDummyAppointment() {
+        return isDummyAppointment;
+    }
+
+    public void setDummyAppointment(boolean dummyAppointment) {
+        isDummyAppointment = dummyAppointment;
+    }
+
+    public String getStartTimeAsString() {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            return startDateTime.format(formatter);
+    }
+
+    public String getEndTimeAsString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        return endDateTime.format(formatter);
     }
 }

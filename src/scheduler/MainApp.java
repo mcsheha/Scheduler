@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import scheduler.controller.ModifyAppointmentController;
+import scheduler.model.Appointment;
 import scheduler.model.Customer;
 import scheduler.controller.HomeScreenController;
 import scheduler.controller.LoginController;
@@ -164,6 +166,55 @@ public class MainApp extends Application {
         dialogStage.showAndWait();
         return controller;
     }
+
+
+    public ModifyAppointmentController showAddAppointmentScreen () throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(MainApp.class.getResource("view/ModifyAppointment.fxml"));
+        VBox page = (VBox) loader.load();
+
+        Stage dialogStage = new Stage();
+
+        dialogStage.setTitle("Add Appointment");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        Scene scene = new Scene (page, 550, 550);
+        dialogStage.setScene(scene);
+
+        ModifyAppointmentController controller = loader.getController();
+        controller.setCurrentUserName(currentUserName);
+        controller.setModifyAppointmentScreenStage(dialogStage);
+        controller.setTitleLabel("Add Appointment");
+
+        dialogStage.showAndWait();
+        return controller;
+    }
+
+
+    public ModifyAppointmentController showModifyAppointmentScreen (Appointment appointment) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(MainApp.class.getResource("view/ModifyAppointment.fxml"));
+        VBox page = (VBox) loader.load();
+
+        Stage dialogStage = new Stage();
+
+        dialogStage.setTitle("Modify Appointment");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        Scene scene = new Scene (page, 550, 550);
+        dialogStage.setScene(scene);
+
+        ModifyAppointmentController controller = loader.getController();
+        controller.setCurrentUserName(currentUserName);
+        controller.setSelectedAppoinment(appointment);
+        controller.setTextFields();
+        controller.setModifyAppointmentScreenStage(dialogStage);
+
+        controller.setNewAppointment(false);
+        controller.setTitleLabel("Modify Appointment");
+
+        dialogStage.showAndWait();
+        return controller;
+    }
+
 
 
     public static void main(String[] args) {

@@ -1,3 +1,4 @@
+/*
 package scheduler.model;
 
 import java.sql.Connection;
@@ -66,4 +67,9 @@ public class AppointmentList {
     public ArrayList<Appointment> getAppointmentArrayList() {
         return appointmentArrayList;
     }
+
+    public void addAppointment (Appointment appointment) {
+        appointmentArrayList.add(appointment);
+    }
 }
+*/
