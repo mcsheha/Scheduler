@@ -72,6 +72,7 @@ public class AppointmentTabController {
         pullAppointmentsFromDb();
         showMonthlyView();
         showWeeklyView();
+        showMonthlyView();
 
 
 /*        addAppointmentButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -100,8 +101,8 @@ public class AppointmentTabController {
 
 
     public void showView() {
-        String selectedView = choiceBox.getSelectionModel().getSelectedItem();
-        if ((selectedView.equals("Monthly"))) {
+        weeklyOrMonthly = choiceBox.getValue();
+        if ((weeklyOrMonthly.equals("Monthly"))) {
             showMonthlyView();
         } else {
             showWeeklyView();
@@ -151,6 +152,8 @@ public class AppointmentTabController {
 
 
     public void showWeeklyView () {
+        choiceBox.setValue("Weekly");
+        weeklyOrMonthly = "Weekly";
         setBeginningAndEndDateTime();
 
         // Creating tree items
@@ -244,6 +247,8 @@ public class AppointmentTabController {
 
     @FXML
     public void showMonthlyView() {
+        choiceBox.setValue("Monthly");
+        weeklyOrMonthly = "Monthly";
         setBeginningAndEndDateTime();
 
         final TreeItem<Appointment> day1 = new TreeItem<>(new Appointment("1",true));
