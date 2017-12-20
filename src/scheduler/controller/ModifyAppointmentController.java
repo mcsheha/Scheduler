@@ -4,12 +4,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import scheduler.MainApp;
 import scheduler.model.Appointment;
 import scheduler.model.DbConnection;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -184,18 +182,18 @@ public class ModifyAppointmentController {
                     psmt.setString(5, location);
                     psmt.setString(6, contact);
                     psmt.setString(7, url);
-                    psmt.setString(8, HomeScreenController.dateTimeAsString(startDateTime));
-                    psmt.setString(9, HomeScreenController.dateTimeAsString(endDateTime));
-                    psmt.setString(10, HomeScreenController.nowUtcAsString());
+                    psmt.setTimestamp(8, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(startDateTime)));
+                    psmt.setTimestamp(9, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(endDateTime)));
+                    psmt.setTimestamp(10, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(LocalDateTime.now())));
                     psmt.setString(11, getCurrentUserName());
-                    psmt.setString(12, HomeScreenController.nowUtcAsString());
+                    psmt.setTimestamp(12, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(LocalDateTime.now())));
                     psmt.setString(13, getCurrentUserName());
                     psmt.executeUpdate();
                     modifyAppointmentScreenStage.close();
                     // add to local list
                     appointmentTabController.addToAppointmentList(new Appointment(appointmentId, customerId, title, description,
-                            location, contact, url, startDateTime, endDateTime, HomeScreenController.nowUtcAsString(),
-                            getCurrentUserName(), HomeScreenController.nowUtcAsString(), getCurrentUserName()));
+                            location, contact, url, startDateTime, endDateTime, LocalDateTime.now(),
+                            getCurrentUserName(), LocalDateTime.now(), getCurrentUserName()));
                     //appointmentTabController.showWeeklyView();
 
 
@@ -218,9 +216,10 @@ public class ModifyAppointmentController {
                     psmt.setString(4, location);
                     psmt.setString(5, contact);
                     psmt.setString(6, url);
-                    psmt.setString(7, HomeScreenController.dateTimeAsString(startDateTime));
-                    psmt.setString(8, HomeScreenController.dateTimeAsString(endDateTime));
-                    psmt.setString(9, HomeScreenController.nowUtcAsString());
+                    psmt.setTimestamp(7, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(startDateTime)));
+                    psmt.setTimestamp (8, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(endDateTime)));
+
+                    psmt.setTimestamp(9, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(LocalDateTime.now())));
                     psmt.setString(10, getCurrentUserName());
                     psmt.setInt(11, appointmentId);
                     psmt.executeUpdate();
@@ -228,11 +227,10 @@ public class ModifyAppointmentController {
                     appointmentTabController.removeFromAppointmentList(appointmentId);
 
                     appointmentTabController.addToAppointmentList(new Appointment(appointmentId, customerId, title, description,
-                        location, contact, url, HomeScreenController.dateTimeAsString(startDateTime),
-                        HomeScreenController.dateTimeAsString(endDateTime),
-                        appointmentTabController.getCreateDateTimeAsString(appointmentId),
+                        location, contact, url, startDateTime, endDateTime,
+                            appointmentTabController.getCreateDateLDT(appointmentId),
                         appointmentTabController.getCreatedBy(appointmentId),
-                        HomeScreenController.nowUtcAsString(), getCurrentUserName()));
+                            LocalDateTime.now(), getCurrentUserName()));
 
 
                 } catch (SQLException e) {
@@ -359,9 +357,9 @@ public class ModifyAppointmentController {
         locationTextField.setText(selectedAppoinment.getLocation());
         contactTextField.setText(selectedAppoinment.getContact());
         urlTextField.setText(selectedAppoinment.getUrl());
-        startDatePicker.setValue(selectedAppoinment.getStartDateTime().toLocalDate());
+        startDatePicker.setValue(selectedAppoinment.getStartLDT().toLocalDate());
         startTimeChoiceBox.setValue(selectedAppoinment.getStartTimeAsString());
-        endDatePicker.setValue(selectedAppoinment.getEndDateTime().toLocalDate());
+        endDatePicker.setValue(selectedAppoinment.getEndLDT().toLocalDate());
         endTimeChoiceBox.setValue(selectedAppoinment.getEndTimeAsString());
 
 

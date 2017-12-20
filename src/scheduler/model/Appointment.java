@@ -1,10 +1,6 @@
 package scheduler.model;
 
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import scheduler.controller.AppointmentTabController;
-import scheduler.controller.CustomerTabController;
+
 import scheduler.controller.HomeScreenController;
 
 import java.sql.Connection;
@@ -13,72 +9,32 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 
 
 public class Appointment {
 
-    // Displayed
+    private boolean isDummyAppointment = false;
+
+    // Displayed in appointment details pane
     private int appointmentId;
-    private int customerId;
     private String title;
     private String description;
     private String location;
     private String contact;
     private String url;
-    private String start;
-    private String end;
-    private String createDate;
+    private LocalDateTime startLDT;
+    private LocalDateTime endLDT;
+    private LocalDateTime lastUpdateLDT;
+    private LocalDateTime createdDateLDT;
     private String createdBy;
-    private String lastUpdate;
     private String lastUpdateBy;
 
 
-    private CustomerTabController customerTabController;
-
-    private SimpleIntegerProperty startProperty;
-    private SimpleStringProperty customerNameProperty;
-    private SimpleStringProperty titleProperty;
-
-    // Displayed in Monthly and Weekly Views
-    private String timeColumnString = "";
+    // Displayed in Monthly and Weekly views pane
+    private String timeColumnString;
     private String customerNameColumnString = "";
-    private String appointmentTypeString = "";
 
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
-
-    private boolean isDummyAppointment = false;
-
-    // constructor not currently used
-    public Appointment (int appointmentId, int customerId, String title, String description, String location, String contact,
-                        String url, String start, String end) {
-
-        this.appointmentId = appointmentId;
-        this.customerId = customerId;
-        this.title = title;
-        this.description = description;
-        this.location = location;
-        this.contact = contact;
-        this.url = url;
-        this.start = start;
-        this.end = end;
-        this.customerTabController = CustomerTabController.getInstance();
-        this.createdBy = customerTabController.getCurrentUserName();
-        this.lastUpdateBy = customerTabController.getCurrentUserName();
-        this.createDate = HomeScreenController.nowUtcAsString();
-        this.lastUpdate = HomeScreenController.nowUtcAsString();
-
-        this.startProperty = new SimpleIntegerProperty(Integer.valueOf(start));
-        this.customerNameProperty = new SimpleStringProperty(customerTabController.getCustomerName(customerId));
-        this.titleProperty = new SimpleStringProperty(title);
-
-    }
-
-    public Appointment (String timeColumnString, String customerNameColumnString, String appointmentTypeString) {
-        this.timeColumnString = timeColumnString;
-        this.customerNameColumnString = customerNameColumnString;
-        this.appointmentTypeString = appointmentTypeString;
-    }
 
     // Constructor for dummy appointments used as treeTableView headers... Monday, Tuesday, 1, 2, 3, etc.
     public Appointment (String timeColumnString, boolean isDummyAppointment) {
@@ -86,65 +42,43 @@ public class Appointment {
         this.isDummyAppointment = true;
     }
 
-    // used by AppointmentList DB query results
-    public Appointment(int appointmentId, int customerId, String title, String description, String location, String contact,
-                String url, String start, String end, String createDate, String createdBy,
-                String lastUpdate, String lastUpdateBy) {
-            this.appointmentId = appointmentId;
-            this.customerId = customerId;
-            this.title = title;
-            this.description = description;
-            this.location = location;
-            this.contact = contact;
-            this.url = url;
-            this.start = start;
-            this.end = end;
-            String startSub = start.substring(11,16);
-            //System.out.println("The startSub format is: " + startSub);
 
-            this.timeColumnString = startSub;
-            this.customerNameColumnString = getCustomerNameFromDb(customerId);
-            this.appointmentTypeString = title;
-            setStartAndEndDateTime(start, end);
-    }
-
-
-    // Constructor used from add appointment form
-    public Appointment(int appointmentId, int customerId, String title, String description, String location,
-                       String contact, String url, LocalDateTime startDateTime, LocalDateTime endDateTime,
-                       String createDate, String createdBy, String lastUpdate, String lastUpdateBy) {
+    // Constructor used when pulling appointments from DB and also when completing add/modify form
+    public Appointment (int appointmentId, int customerId, String title, String description, String location, String contact,
+                        String url, LocalDateTime startLDT, LocalDateTime endLDT, LocalDateTime createDateLDT, String createdBy,
+                        LocalDateTime lastUpdateLDT, String lastUpdateBy) {
         this.appointmentId = appointmentId;
-        this.customerId = customerId;
         this.title = title;
         this.description = description;
         this.location = location;
         this.contact = contact;
         this.url = url;
-
-        this.startDateTime = startDateTime;
-        this.endDateTime = endDateTime;
-        this.createDate = createDate;
+        this.startLDT = startLDT;
+        this.endLDT = endLDT;
         this.createdBy = createdBy;
-        this.lastUpdate = lastUpdate;
         this.lastUpdateBy = lastUpdateBy;
+        this.createdDateLDT = createDateLDT;
+        this.lastUpdateLDT = lastUpdateLDT;
 
-
-        this.timeColumnString = startDateTime.toString().substring(11,16);
-        System.out.println("this is the format for timeColumnString: " + startDateTime.toString().substring(11,16));
         this.customerNameColumnString = getCustomerNameFromDb(customerId);
-        this.appointmentTypeString = title;
+        this.timeColumnString = startLDT.toString().substring(11,16) + " - " + endLDT.toString().substring(11, 16);
 
+    }
 
+    public String getCreatedDateAsLocalString() {
+        String str = createdDateLDT.toString();
+        return HomeScreenController.formatDateTimeString(str);
 
-        //this.start = start;
-        //this.end = end;
-        //String startSub = start.substring(11,16);
+    }
 
+    public String getLastUpdateDateAsLocalString() {
+        String str = lastUpdateLDT.toString();
+        return HomeScreenController.formatDateTimeString(str);
 
     }
 
 
-    public String getCustomerNameFromDb (int customerId) {
+    private String getCustomerNameFromDb (int customerId) {
         String customerName = null;
         String sql = "SELECT customerName FROM customer WHERE customerId = " + customerId + ";";
         Connection dbConnect = DbConnection.getInstance().getConnection();
@@ -166,217 +100,85 @@ public class Appointment {
     }
 
 
-    public void setStartAndEndDateTime (String start, String end) {
-            start = start.substring(0,16);
-            end = end.substring(0,16);
-            System.out.println("Start is: " + start);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            this.startDateTime = LocalDateTime.parse(start, formatter);
-            this.endDateTime = LocalDateTime.parse(end,formatter);
-
-    }
-
-
-
 
     public int getAppointmentId() {
         return appointmentId;
-    }
-
-    public void setAppointmentId(int appointmentId) {
-        this.appointmentId = appointmentId;
-    }
-
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-        this.customerNameProperty.setValue(customerTabController.getCustomerName(customerId));
     }
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-        this.titleProperty.setValue(title);
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public String getContact() {
         return contact;
-    }
-
-    public void setContact(String contact) {
-        this.contact = contact;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getStart() {
-        return start;
-    }
-
-    public void setStart(String start) {
-        this.start = start;
-        this.startProperty.setValue(Integer.valueOf(start));
-    }
-
-    public String getEnd() {
-        return end;
-    }
-
-    public void setEnd(String end) {
-        this.end = end;
-    }
-
-    public String getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(String createDate) {
-        this.createDate = createDate;
-    }
-
     public String getCreatedBy() {
         return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(String lastUpdate) {
-        this.lastUpdate = lastUpdate;
     }
 
     public String getLastUpdateBy() {
         return lastUpdateBy;
     }
 
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
-
-    public int getStartProperty() {
-        return startProperty.get();
-    }
-
-    public SimpleIntegerProperty startPropertyProperty() {
-        return startProperty;
-    }
-
-    public void setStartProperty(int startProperty) {
-        this.startProperty.set(startProperty);
-    }
-
-    public String getCustomerNameProperty() {
-        return customerNameProperty.get();
-    }
-
-    public SimpleStringProperty customerNamePropertyProperty() {
-        return customerNameProperty;
-    }
-
-    public void setCustomerNameProperty(String customerNameProperty) {
-        this.customerNameProperty.set(customerNameProperty);
-    }
-
-    public String getTitleProperty() {
-        return titleProperty.get();
-    }
-
-    public SimpleStringProperty titlePropertyProperty() {
-        return titleProperty;
-    }
-
-    public void setTitleProperty(String titleProperty) {
-        this.titleProperty.set(titleProperty);
-    }
-
     public String getTimeColumnString() {
         return timeColumnString;
-    }
-
-    public void setTimeColumnString(String timeColumnString) {
-        this.timeColumnString = timeColumnString;
     }
 
     public String getCustomerNameColumnString() {
         return customerNameColumnString;
     }
 
-    public void setCustomerNameColumnString(String customerNameColumnString) {
-        this.customerNameColumnString = customerNameColumnString;
-    }
-
-    public String getAppointmentTypeString() {
-        return appointmentTypeString;
-    }
-
-    public void setAppointmentTypeString(String appointmentTypeString) {
-        this.appointmentTypeString = appointmentTypeString;
-    }
-
-    public LocalDateTime getStartDateTime() {
-        return startDateTime;
-    }
-
-    public void setStartDateTime(LocalDateTime startDateTime) {
-        this.startDateTime = startDateTime;
-    }
-
-    public LocalDateTime getEndDateTime() {
-        return endDateTime;
-    }
-
-    public void setEndDateTime(LocalDateTime endDateTime) {
-        this.endDateTime = endDateTime;
-    }
-
     public boolean isDummyAppointment() {
         return isDummyAppointment;
     }
 
-    public void setDummyAppointment(boolean dummyAppointment) {
-        isDummyAppointment = dummyAppointment;
-    }
-
     public String getStartTimeAsString() {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-            return startDateTime.format(formatter);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        return startLDT.format(formatter);
     }
 
     public String getEndTimeAsString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return endDateTime.format(formatter);
+        return endLDT.format(formatter);
     }
+
+    public LocalDateTime getStartLDT() {
+        return startLDT;
+    }
+
+    public LocalDateTime getEndLDT() {
+        return endLDT;
+    }
+
+/*
+
+    public int compareTo(Appointment o1, Appointment o2) {
+        return o1.getStartLDT().compareTo(o2.getStartLDT());
+    }
+
+
+    @Override
+    public int compareTo(Appointment o) {
+        return this.startLDT.compareTo(o.getStartLDT());
+    }
+
+
+    @Override
+    public int compare(Appointment o1, Appointment o2) {
+        return o1.getStartLDT().compareTo(o2.getStartLDT());
+    }
+*/
 }

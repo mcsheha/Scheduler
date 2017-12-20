@@ -62,7 +62,6 @@ public class CustomerTabController {
         this.mainApp = MainApp.getInstance();
         this.currentUserName = mainApp.getCurrentUserName();
 
-        System.out.println("The current user when HomeScreenController is first initialized is: " + currentUserName);
         setTheTable();
 
     }

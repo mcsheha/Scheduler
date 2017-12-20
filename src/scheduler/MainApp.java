@@ -82,7 +82,6 @@ public class MainApp extends Application {
         try {
             root = FXMLLoader.load(getClass().getResource("view/HomeScreen.fxml"));
 
-            System.out.println("When showHomeScreen is called the currentUserName is: " + currentUserName);
 
             //homeScreenController.setMainApp();
             homeScreenController.setCurrentUserName(currentUserName);
@@ -93,7 +92,6 @@ public class MainApp extends Application {
         primaryStage.setTitle("Scheduler");
         primaryStage.setScene(new Scene(root,900, 750));
         primaryStage.show();
-        System.out.println(currentUserName);
     }
 
 
@@ -119,8 +117,7 @@ public class MainApp extends Application {
 
         controller.setTitleLabel("Add Customer");
 
-        System.out.println("The currentUserName passed to showAddCustomerScreen of MainApp is: " + currentUserName);
-        System.out.println("The currentUserName of the Add customer screen is: " + controller.getCurrentUserName());
+
 
         dialogStage.showAndWait();
         return controller;
@@ -160,8 +157,7 @@ public class MainApp extends Application {
 
         controller.setTitleLabel("Modify Customer");
 
-        System.out.println("The currentUserName passed to showAddCustomerScreen of MainApp is: " + currentUserName);
-        System.out.println("The currentUserName of the Add customer screen is: " + controller.getCurrentUserName());
+
 
         dialogStage.showAndWait();
         return controller;
