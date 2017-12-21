@@ -192,49 +192,63 @@ public class AppointmentTabController {
         saturday.setExpanded(true);
 
 
+        List<TreeItem<Appointment>> sundayList = new ArrayList<>();
+        List<TreeItem<Appointment>> mondayList = new ArrayList<>();
+        List<TreeItem<Appointment>> tuesdayList = new ArrayList<>();
+        List<TreeItem<Appointment>> wednesdayList = new ArrayList<>();
+        List<TreeItem<Appointment>> thursdayList = new ArrayList<>();
+        List<TreeItem<Appointment>> fridayList = new ArrayList<>();
+        List<TreeItem<Appointment>> saturdayList = new ArrayList<>();
 
 
         for (Appointment a : localAppointmentList) {
             if(a.getStartLDT().isAfter(beginningDateTime) && a.getStartLDT().isBefore(endingDateTime)) {
                 DayOfWeek d = a.getStartLDT().getDayOfWeek();
                 if (d.getValue() == 7) {
-                    sunday.getChildren().add(new TreeItem<>(a));
+                    sundayList.add(new TreeItem<>(a));
                 }
                 if (d.getValue() == 1) {
-                    monday.getChildren().add(new TreeItem<>(a));
+                    mondayList.add(new TreeItem<>(a));
                 }
                 if (d.getValue() == 2) {
-                    tuesday.getChildren().add(new TreeItem<>(a));
+                    tuesdayList.add(new TreeItem<>(a));
                 }
                 if (d.getValue() == 3) {
-                    wednesday.getChildren().add(new TreeItem<>(a));
+                    wednesdayList.add(new TreeItem<>(a));
                 }
                 if (d.getValue() == 4) {
-                    thursday.getChildren().add(new TreeItem<>(a));
+                    thursdayList.add(new TreeItem<>(a));
                 }
                 if (d.getValue() == 5) {
-                    friday.getChildren().add(new TreeItem<>(a));
+                    fridayList.add(new TreeItem<>(a));
                 }
                 if (d.getValue() == 6) {
-                    saturday.getChildren().add(new TreeItem<>(a));
+                    saturdayList.add(new TreeItem<>(a));
                 }
             }
-
         }
 
 
+        // Set sort order to appointment start time
+        sundayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        mondayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        tuesdayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        wednesdayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        thursdayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        fridayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        saturdayList.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
 
-
-
+        // Add sorted Tree items as children to days of the week
+        sunday.getChildren().addAll(sundayList);
+        monday.getChildren().addAll(mondayList);
+        tuesday.getChildren().addAll(tuesdayList);
+        wednesday.getChildren().addAll(wednesdayList);
+        thursday.getChildren().addAll(thursdayList);
+        friday.getChildren().addAll(fridayList);
+        saturday.getChildren().addAll(saturdayList);
 
 
         root.getChildren().setAll(sunday, monday, tuesday, wednesday, thursday, friday, saturday);
-
-        // Creating a column
-        //TreeTableColumn<String,String> column1 = new TreeTableColumn<>("Column1");
-
-        localAppointmentList.sorted(comparing(Appointment::getStartLDT, nullsLast(naturalOrder())));
-
 
 
         // Defining cell content
@@ -335,44 +349,143 @@ public class AppointmentTabController {
         day30.setExpanded(true);
         day31.setExpanded(true);
 
+        List<TreeItem<Appointment>> day1List = new ArrayList<>();
+        List<TreeItem<Appointment>> day2List = new ArrayList<>();
+        List<TreeItem<Appointment>> day3List = new ArrayList<>();
+        List<TreeItem<Appointment>> day4List = new ArrayList<>();
+        List<TreeItem<Appointment>> day5List = new ArrayList<>();
+        List<TreeItem<Appointment>> day6List = new ArrayList<>();
+        List<TreeItem<Appointment>> day7List = new ArrayList<>();
+        List<TreeItem<Appointment>> day8List = new ArrayList<>();
+        List<TreeItem<Appointment>> day9List = new ArrayList<>();
+        List<TreeItem<Appointment>> day10List = new ArrayList<>();
+        List<TreeItem<Appointment>> day11List = new ArrayList<>();
+        List<TreeItem<Appointment>> day12List = new ArrayList<>();
+        List<TreeItem<Appointment>> day13List = new ArrayList<>();
+        List<TreeItem<Appointment>> day14List = new ArrayList<>();
+        List<TreeItem<Appointment>> day15List = new ArrayList<>();
+        List<TreeItem<Appointment>> day16List = new ArrayList<>();
+        List<TreeItem<Appointment>> day17List = new ArrayList<>();
+        List<TreeItem<Appointment>> day18List = new ArrayList<>();
+        List<TreeItem<Appointment>> day19List = new ArrayList<>();
+        List<TreeItem<Appointment>> day20List = new ArrayList<>();
+        List<TreeItem<Appointment>> day21List = new ArrayList<>();
+        List<TreeItem<Appointment>> day22List = new ArrayList<>();
+        List<TreeItem<Appointment>> day23List = new ArrayList<>();
+        List<TreeItem<Appointment>> day24List = new ArrayList<>();
+        List<TreeItem<Appointment>> day25List = new ArrayList<>();
+        List<TreeItem<Appointment>> day26List = new ArrayList<>();
+        List<TreeItem<Appointment>> day27List = new ArrayList<>();
+        List<TreeItem<Appointment>> day28List = new ArrayList<>();
+        List<TreeItem<Appointment>> day29List = new ArrayList<>();
+        List<TreeItem<Appointment>> day30List = new ArrayList<>();
+        List<TreeItem<Appointment>> day31List = new ArrayList<>();
+
+
         for (Appointment a : localAppointmentList) {
             if(a.getStartLDT().isAfter(beginningDateTime) && a.getStartLDT().isBefore(endingDateTime)) {
                 int i = a.getStartLDT().getDayOfMonth();
-                if (i == 1) { day1.getChildren().add(new TreeItem<>(a)); }
-                if (i == 2) { day2.getChildren().add(new TreeItem<>(a)); }
-                if (i == 3) { day3.getChildren().add(new TreeItem<>(a)); }
-                if (i == 4) { day4.getChildren().add(new TreeItem<>(a)); }
-                if (i == 5) { day5.getChildren().add(new TreeItem<>(a)); }
-                if (i == 6) { day6.getChildren().add(new TreeItem<>(a)); }
-                if (i == 7) { day7.getChildren().add(new TreeItem<>(a)); }
-                if (i == 8) { day8.getChildren().add(new TreeItem<>(a)); }
-                if (i == 9) { day9.getChildren().add(new TreeItem<>(a)); }
-                if (i == 10) { day10.getChildren().add(new TreeItem<>(a)); }
-                if (i == 11) { day11.getChildren().add(new TreeItem<>(a)); }
-                if (i == 12) { day12.getChildren().add(new TreeItem<>(a)); }
-                if (i == 13) { day13.getChildren().add(new TreeItem<>(a)); }
-                if (i == 14) { day14.getChildren().add(new TreeItem<>(a)); }
-                if (i == 15) { day15.getChildren().add(new TreeItem<>(a)); }
-                if (i == 16) { day16.getChildren().add(new TreeItem<>(a)); }
-                if (i == 17) { day17.getChildren().add(new TreeItem<>(a)); }
-                if (i == 18) { day18.getChildren().add(new TreeItem<>(a)); }
-                if (i == 19) { day19.getChildren().add(new TreeItem<>(a)); }
-                if (i == 20) { day20.getChildren().add(new TreeItem<>(a)); }
-                if (i == 21) { day21.getChildren().add(new TreeItem<>(a)); }
-                if (i == 22) { day22.getChildren().add(new TreeItem<>(a)); }
-                if (i == 23) { day23.getChildren().add(new TreeItem<>(a)); }
-                if (i == 24) { day24.getChildren().add(new TreeItem<>(a)); }
-                if (i == 25) { day25.getChildren().add(new TreeItem<>(a)); }
-                if (i == 26) { day26.getChildren().add(new TreeItem<>(a)); }
-                if (i == 27) { day27.getChildren().add(new TreeItem<>(a)); }
-                if (i == 28) { day28.getChildren().add(new TreeItem<>(a)); }
-                if (i == 29) { day29.getChildren().add(new TreeItem<>(a)); }
-                if (i == 30) { day30.getChildren().add(new TreeItem<>(a)); }
-                if (i == 31) { day31.getChildren().add(new TreeItem<>(a)); }
+                if (i == 1) { day1List.add(new TreeItem<>(a)); }
+                if (i == 2) { day2List.add(new TreeItem<>(a)); }
+                if (i == 3) { day3List.add(new TreeItem<>(a)); }
+                if (i == 4) { day4List.add(new TreeItem<>(a)); }
+                if (i == 5) { day5List.add(new TreeItem<>(a)); }
+                if (i == 6) { day6List.add(new TreeItem<>(a)); }
+                if (i == 7) { day7List.add(new TreeItem<>(a)); }
+                if (i == 8) { day8List.add(new TreeItem<>(a)); }
+                if (i == 9) { day9List.add(new TreeItem<>(a)); }
+                if (i == 10) { day10List.add(new TreeItem<>(a)); }
+                if (i == 11) { day11List.add(new TreeItem<>(a)); }
+                if (i == 12) { day12List.add(new TreeItem<>(a)); }
+                if (i == 13) { day13List.add(new TreeItem<>(a)); }
+                if (i == 14) { day14List.add(new TreeItem<>(a)); }
+                if (i == 15) { day15List.add(new TreeItem<>(a)); }
+                if (i == 16) { day16List.add(new TreeItem<>(a)); }
+                if (i == 17) { day17List.add(new TreeItem<>(a)); }
+                if (i == 18) { day18List.add(new TreeItem<>(a)); }
+                if (i == 19) { day19List.add(new TreeItem<>(a)); }
+                if (i == 20) { day20List.add(new TreeItem<>(a)); }
+                if (i == 21) { day21List.add(new TreeItem<>(a)); }
+                if (i == 22) { day22List.add(new TreeItem<>(a)); }
+                if (i == 23) { day23List.add(new TreeItem<>(a)); }
+                if (i == 24) { day24List.add(new TreeItem<>(a)); }
+                if (i == 25) { day25List.add(new TreeItem<>(a)); }
+                if (i == 26) { day26List.add(new TreeItem<>(a)); }
+                if (i == 27) { day27List.add(new TreeItem<>(a)); }
+                if (i == 28) { day28List.add(new TreeItem<>(a)); }
+                if (i == 29) { day29List.add(new TreeItem<>(a)); }
+                if (i == 30) { day30List.add(new TreeItem<>(a)); }
+                if (i == 31) { day31List.add(new TreeItem<>(a)); }
 
 
             }
         }
+
+        // Set sort order to appointment start time
+        day1List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day2List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day3List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day4List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day5List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day6List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day7List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day8List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day9List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day10List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day11List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day12List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day13List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day14List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day15List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day16List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day17List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day18List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day19List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day20List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day21List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day22List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day23List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day24List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day25List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day26List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day27List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day28List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day29List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day30List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+        day31List.sort(Comparator.comparing(t->t.getValue().getStartLDT()));
+
+        // Add sorted Tree items as children to days of the month
+        day1.getChildren().addAll(day1List);
+        day2.getChildren().addAll(day2List);
+        day3.getChildren().addAll(day3List);
+        day4.getChildren().addAll(day4List);
+        day5.getChildren().addAll(day5List);
+        day6.getChildren().addAll(day6List);
+        day7.getChildren().addAll(day7List);
+        day8.getChildren().addAll(day8List);
+        day9.getChildren().addAll(day9List);
+        day10.getChildren().addAll(day10List);
+        day11.getChildren().addAll(day11List);
+        day12.getChildren().addAll(day12List);
+        day13.getChildren().addAll(day13List);
+        day14.getChildren().addAll(day14List);
+        day15.getChildren().addAll(day15List);
+        day16.getChildren().addAll(day16List);
+        day17.getChildren().addAll(day17List);
+        day18.getChildren().addAll(day18List);
+        day19.getChildren().addAll(day19List);
+        day20.getChildren().addAll(day20List);
+        day21.getChildren().addAll(day21List);
+        day22.getChildren().addAll(day22List);
+        day23.getChildren().addAll(day23List);
+        day24.getChildren().addAll(day24List);
+        day25.getChildren().addAll(day25List);
+        day26.getChildren().addAll(day26List);
+        day27.getChildren().addAll(day27List);
+        day28.getChildren().addAll(day28List);
+        day29.getChildren().addAll(day29List);
+        day30.getChildren().addAll(day30List);
+        day31.getChildren().addAll(day31List);
 
 
         root.getChildren().setAll(day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13, day14,
@@ -388,7 +501,6 @@ public class AppointmentTabController {
             root.getChildren().addAll(day31);
         }
 
-        //localAppointmentList.sorted(comparing(Appointment::getStartLDT, nullsLast(naturalOrder())));
 
 
         // Defining cell content
