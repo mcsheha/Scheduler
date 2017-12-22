@@ -200,7 +200,7 @@ public class MainApp extends Application {
 
         ModifyAppointmentController controller = loader.getController();
         controller.setCurrentUserName(currentUserName);
-        controller.setSelectedAppoinment(appointment);
+        controller.setSelectedAppointment(appointment);
         controller.setTextFields();
         controller.setModifyAppointmentScreenStage(dialogStage);
 

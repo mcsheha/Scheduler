@@ -1,6 +1,13 @@
 package scheduler.controller;
 
 
+import scheduler.model.DbConnection;
+
+import javax.swing.plaf.nimbus.State;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -11,9 +18,13 @@ public class HomeScreenController {
 
     private static HomeScreenController firstInstance = null;
     private static String currentUserName;
+    private static Connection dbConnect;
+
 
 
     public void initialize(){
+        dbConnect = DbConnection.getInstance().getConnection();
+
     }
 
 
@@ -59,6 +70,29 @@ public class HomeScreenController {
 
     public static String dateTimeAsString (LocalDateTime dateTime) {
         return dateTime.toString().replace("T", " ");
+    }
+
+
+    public static String getCustomerNameFromId(int customerId) {
+        String queryString = "SELECT customerName FROM customer WHERE customerId = " + customerId + ";";
+        String customerName = "";
+
+        try {
+            Statement statement = dbConnect.prepareStatement(queryString);
+            statement.executeQuery(queryString);
+            ResultSet rs = statement.getResultSet();
+
+            while(rs.next()) {
+                customerName = rs.getString("customerName");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return customerName;
+
+
     }
 }
 

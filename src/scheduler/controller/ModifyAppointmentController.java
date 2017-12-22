@@ -8,10 +8,13 @@ import scheduler.model.Appointment;
 import scheduler.model.DbConnection;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 
 
 public class ModifyAppointmentController {
@@ -21,9 +24,7 @@ public class ModifyAppointmentController {
     private Stage modifyAppointmentScreenStage;
     private static String currentUserName;
     private static AppointmentTabController appointmentTabController;
-    private Appointment selectedAppoinment;
-
-
+    private Appointment selectedAppointment;
 
 
     @FXML
@@ -67,8 +68,6 @@ public class ModifyAppointmentController {
         populateCustomerChoiceBox();
         populateTimeChoiceBoxes();
         appointmentTabController = AppointmentTabController.getInstance();
-
-
     }
 
 
@@ -151,7 +150,7 @@ public class ModifyAppointmentController {
     }
 
     public void handleSaveButtonClicked () {
-        if(isInputValid()) {
+        if(isInputValid() && duringWorkingHours() && notConflicting()) {
             int appointmentId = Integer.valueOf(appointmentIdTextField.getText());
             String customerName = customerChoiceBox.getSelectionModel().getSelectedItem();
             String title = titleTextField.getText();
@@ -241,6 +240,95 @@ public class ModifyAppointmentController {
 
         }
     }
+
+
+    // Checks for scheduling errors before saving appointment
+    //      Queries DB for all appointments the day before and day after and compares start/end dates to date/times on form
+    private boolean notConflicting() {
+        boolean rtnBool = true;
+
+        String newAptStartTimeLocalString = startTimeChoiceBox.getSelectionModel().getSelectedItem();
+        String newAptEndTimeLocalString = endTimeChoiceBox.getSelectionModel().getSelectedItem();
+        LocalDate startDate = startDatePicker.getValue();
+        LocalDate endDate = endDatePicker.getValue();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        LocalDateTime newAptStartDateTimeZulu = HomeScreenController.
+                convertLocaltoZulu(startDate.atTime(LocalTime.parse(newAptStartTimeLocalString,formatter)));
+        LocalDateTime newAptEndDateTimeZulu = HomeScreenController.
+                convertLocaltoZulu(endDate.atTime(LocalTime.parse(newAptEndTimeLocalString,formatter)));
+
+        LocalDate dayBefore = newAptStartDateTimeZulu.toLocalDate().minusDays(1);
+        LocalDate dayAfter = newAptEndDateTimeZulu.toLocalDate().plusDays(1);
+
+        String queryString = "SELECT * FROM appointment WHERE start >= '" + dayBefore +"' AND start <='" + dayAfter + "';";
+
+        try {
+            Statement statement = dbConnect.prepareStatement(queryString);
+            statement.executeQuery(queryString);
+            ResultSet rs = statement.getResultSet();
+
+            while(rs.next()) {
+                LocalDateTime oldAptStartDateTimeZulu = rs.getTimestamp("start").toLocalDateTime();
+                LocalDateTime oldAptEndDateTimeZulu = rs.getTimestamp("end").toLocalDateTime();
+                int oldAptId = rs.getInt("appointmentId");
+
+                if (!(Integer.valueOf(appointmentIdTextField.getText()) == oldAptId) && newAptStartDateTimeZulu.isEqual(oldAptStartDateTimeZulu) || newAptEndDateTimeZulu.isEqual(oldAptEndDateTimeZulu) ||
+                        (newAptStartDateTimeZulu.isBefore(oldAptStartDateTimeZulu) && newAptEndDateTimeZulu.isAfter(oldAptStartDateTimeZulu)) ||
+                        (newAptStartDateTimeZulu.isAfter(oldAptStartDateTimeZulu) &&  newAptEndDateTimeZulu.isBefore(oldAptEndDateTimeZulu))) {
+
+                    String oldTitle = rs.getString("title");
+                    String oldCustomer = HomeScreenController.getCustomerNameFromId(rs.getInt("customerId"));
+                    LocalTime oldStartTimeLocal = HomeScreenController.convertZuluToLocal(oldAptStartDateTimeZulu).toLocalTime();
+                    LocalTime oldEndTimeLocal = HomeScreenController.convertZuluToLocal(oldAptEndDateTimeZulu).toLocalTime();
+
+                    String schedulingConflictError = oldStartTimeLocal + " - " + oldEndTimeLocal + "     " + oldCustomer + "     " + oldTitle;
+
+                    //Alert
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Scheduling Conflict");
+                    alert.setHeaderText("There is a scheduling conflict with: ");
+                    alert.setContentText(schedulingConflictError);
+                    alert.showAndWait();
+
+                    return false;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return rtnBool;
+    }
+
+
+
+    private boolean duringWorkingHours() {
+        LocalTime workStartTime = LocalTime.of(9,00);
+        LocalTime workEndTime = LocalTime.of(17,00);
+        String startTimeString = startTimeChoiceBox.getSelectionModel().getSelectedItem();
+        String endTimeString = endTimeChoiceBox.getSelectionModel().getSelectedItem();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        LocalTime startTime = LocalTime.parse(startTimeString, formatter);
+        LocalTime endTime = LocalTime.parse(endTimeString, formatter);
+        boolean rtnBool = false;
+
+        if(!startTime.isBefore(workStartTime) && !endTime.isAfter(workEndTime)) {
+            rtnBool = true;
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Appointment times outside of working hours!");
+            alert.setContentText("Appointment must be between 9am and 5pm.");
+            alert.showAndWait();
+        }
+        return rtnBool;
+    }
+
 
     public LocalDateTime localDateTimeStringToObject (String dateString, String timeString) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -349,18 +437,18 @@ public class ModifyAppointmentController {
     }
 
     public void setTextFields () {
-        appointmentIdTextField.setText(Integer.toString(selectedAppoinment.getAppointmentId()));
-        titleTextField.setText(Integer.toString(selectedAppoinment.getAppointmentId()));
-        customerChoiceBox.setValue(selectedAppoinment.getCustomerNameColumnString());
-        titleTextField.setText(selectedAppoinment.getTitle());
-        descriptionTextField.setText(selectedAppoinment.getDescription());
-        locationTextField.setText(selectedAppoinment.getLocation());
-        contactTextField.setText(selectedAppoinment.getContact());
-        urlTextField.setText(selectedAppoinment.getUrl());
-        startDatePicker.setValue(selectedAppoinment.getStartLDT().toLocalDate());
-        startTimeChoiceBox.setValue(selectedAppoinment.getStartTimeAsString());
-        endDatePicker.setValue(selectedAppoinment.getEndLDT().toLocalDate());
-        endTimeChoiceBox.setValue(selectedAppoinment.getEndTimeAsString());
+        appointmentIdTextField.setText(Integer.toString(selectedAppointment.getAppointmentId()));
+        titleTextField.setText(Integer.toString(selectedAppointment.getAppointmentId()));
+        customerChoiceBox.setValue(selectedAppointment.getCustomerNameColumnString());
+        titleTextField.setText(selectedAppointment.getTitle());
+        descriptionTextField.setText(selectedAppointment.getDescription());
+        locationTextField.setText(selectedAppointment.getLocation());
+        contactTextField.setText(selectedAppointment.getContact());
+        urlTextField.setText(selectedAppointment.getUrl());
+        startDatePicker.setValue(selectedAppointment.getStartLDT().toLocalDate());
+        startTimeChoiceBox.setValue(selectedAppointment.getStartTimeAsString());
+        endDatePicker.setValue(selectedAppointment.getEndLDT().toLocalDate());
+        endTimeChoiceBox.setValue(selectedAppointment.getEndTimeAsString());
 
 
     }
@@ -386,11 +474,11 @@ public class ModifyAppointmentController {
     }
 
 
-    public Appointment getSelectedAppoinment() {
-        return selectedAppoinment;
+    public Appointment getSelectedAppointment() {
+        return selectedAppointment;
     }
 
-    public void setSelectedAppoinment(Appointment selectedAppoinment) {
-        this.selectedAppoinment = selectedAppoinment;
+    public void setSelectedAppointment(Appointment selectedAppointment) {
+        this.selectedAppointment = selectedAppointment;
     }
 }
