@@ -1,16 +1,12 @@
 package scheduler.controller;
 
-import java.util.stream.*;
-import static java.util.Comparator.*;
+
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
@@ -31,16 +27,18 @@ import java.util.*;
 public class AppointmentTabController {
 
     private static AppointmentTabController firstInstance = null;
-    //private static AppointmentList appointmentList;
     public static ObservableList<Appointment> localAppointmentList = FXCollections.observableArrayList();
 
-    private static Connection dbConnect;
-    private MainApp mainApp;
+    private static Connection dbConnect = DbConnection.getInstance().getConnection();
+    private ArrayList<String> consultantList = new ArrayList<>();
+
 
     @FXML
     private TextArea textArea;
     @FXML
-    private ChoiceBox<String> choiceBox;
+    private ChoiceBox<String> weeklyMonthlyChoiceBox;
+    @FXML
+    private ChoiceBox<String> consultantChoiceBox;
     @FXML
     private DatePicker datePicker;
     @FXML
@@ -57,8 +55,11 @@ public class AppointmentTabController {
     private TreeTableColumn<Appointment, String> customerNameColumn = new TreeTableColumn<>();
     @FXML
     private TreeTableColumn<Appointment, String> appointmentTypeColumn = new TreeTableColumn<>();
+    @FXML
+    private TreeTableColumn<Appointment, String> consultantNameColumn = new TreeTableColumn<>();
 
     private String weeklyOrMonthly = "Weekly";
+    private String userOrEveryone = "Everyone";
 
     private LocalDateTime beginningDateTime;
 
@@ -66,18 +67,20 @@ public class AppointmentTabController {
 
 
 
-
     public void initialize(){
-        choiceBox.getItems().addAll("Weekly", "Monthly");
-        choiceBox.setValue("Weekly");
-        dbConnect = DbConnection.getInstance().getConnection();
-        this.mainApp = MainApp.getInstance();
+        populateConsultantList();
+        weeklyMonthlyChoiceBox.getItems().addAll("Weekly", "Monthly");
+        weeklyMonthlyChoiceBox.setValue("Weekly");
+        consultantChoiceBox.getItems().addAll(MainApp.getCurrentUserName(),"Everyone");
+        consultantChoiceBox.setValue(MainApp.getCurrentUserName());
         datePicker.setValue(LocalDate.now());
 
 
         pullAppointmentsFromDb();
         showMonthlyView();
         showWeeklyView();
+        checkForUpcomingAppointments();
+
 
         // Listen for changes to localAppointmentList and re-call showView when list changes
         localAppointmentList.addListener((ListChangeListener<Appointment>) c -> {
@@ -87,7 +90,12 @@ public class AppointmentTabController {
         });
 
         // toggle view between monthly and weekly based on user's selection
-        choiceBox.setOnAction((event -> {
+        weeklyMonthlyChoiceBox.setOnAction((event -> {
+            showView();
+        }));
+
+        // toggle view between monthly and weekly based on user's selection
+        consultantChoiceBox.setOnAction((event -> {
             showView();
         }));
 
@@ -113,10 +121,38 @@ public class AppointmentTabController {
         showAppointmentDetails();
     }
 
+    private void checkForUpcomingAppointments() {
+        LocalDateTime loginDateTime = LocalDateTime.now();
+        LocalDateTime loginDateTimePlus15 = loginDateTime.plusMinutes(15);
+        String reminderString = "";
+
+        for (Appointment i : localAppointmentList) {
+            if(i.getStartLDT().isAfter(loginDateTime) && i.getStartLDT().isBefore(loginDateTimePlus15)) {
+                String customer = i.getCustomerNameColumnString();
+                String startTime = i.getStartTimeAsString();
+                String endTime = i.getEndTimeAsString();
+                String title = i.getTitle();
+
+                reminderString += startTime + " - " + endTime + "\t" + customer + "\t" + title + "\n";
+                System.out.println("You have an upcoming appointment!");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Upcoming Activity!");
+                alert.setHeaderText("Reminder:");
+                alert.setContentText(reminderString);
+
+                alert.showAndWait();
+
+
+            }
+
+        }
+    }
+
 
     @FXML
     public void showView() {
-        weeklyOrMonthly = choiceBox.getValue();
+        weeklyOrMonthly = weeklyMonthlyChoiceBox.getValue();
+        userOrEveryone = consultantChoiceBox.getValue();
         if ((weeklyOrMonthly.equals("Monthly"))) {
             showMonthlyView();
         } else {
@@ -125,23 +161,35 @@ public class AppointmentTabController {
 
     }
 
+
     @FXML
     public void handleDelete () {
-        Appointment appointment = treeTableView.getSelectionModel().getSelectedItem().getValue();
-        int appointmentId = appointment.getAppointmentId();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm");
+        alert.setHeaderText("Are you sure you want to delete this appointment?");
 
-        String sql = "DELETE FROM appointment WHERE appointmentId = " + appointmentId + ";";
 
-        try {
-            PreparedStatement psmt = dbConnect.prepareStatement(sql);
-            psmt.execute();
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK){
+            Appointment appointment = treeTableView.getSelectionModel().getSelectedItem().getValue();
+            int appointmentId = appointment.getAppointmentId();
+
+            String sql = "DELETE FROM appointment WHERE appointmentId = " + appointmentId + ";";
+
+            try {
+                PreparedStatement psmt = dbConnect.prepareStatement(sql);
+                psmt.execute();
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // also delete from local customer list
+            localAppointmentList.remove(appointment);
+        } else {
+            alert.close();
         }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
 
-        // also delete from local customer list
-        localAppointmentList.remove(appointment);
     }
 
 
@@ -158,7 +206,7 @@ public class AppointmentTabController {
 
         else {
             Appointment appointment = treeTableView.getSelectionModel().getSelectedItem().getValue();
-            ModifyAppointmentController controller = mainApp.showModifyAppointmentScreen(appointment);
+            ModifyAppointmentController controller = MainApp.showModifyAppointmentScreen(appointment);
 
         }
 
@@ -167,7 +215,7 @@ public class AppointmentTabController {
 
 
     public void showWeeklyView () {
-        choiceBox.setValue("Weekly");
+        weeklyMonthlyChoiceBox.setValue("Weekly");
         weeklyOrMonthly = "Weekly";
         setBeginningAndEndDateTime();
 
@@ -202,7 +250,31 @@ public class AppointmentTabController {
 
 
         for (Appointment a : localAppointmentList) {
-            if(a.getStartLDT().isAfter(beginningDateTime) && a.getStartLDT().isBefore(endingDateTime)) {
+            if(consultantChoiceBox.getValue().equals("Everyone") && a.getStartLDT().isAfter(beginningDateTime) && a.getStartLDT().isBefore(endingDateTime)) {
+                DayOfWeek d = a.getStartLDT().getDayOfWeek();
+                if (d.getValue() == 7) {
+                    sundayList.add(new TreeItem<>(a));
+                }
+                if (d.getValue() == 1) {
+                    mondayList.add(new TreeItem<>(a));
+                }
+                if (d.getValue() == 2) {
+                    tuesdayList.add(new TreeItem<>(a));
+                }
+                if (d.getValue() == 3) {
+                    wednesdayList.add(new TreeItem<>(a));
+                }
+                if (d.getValue() == 4) {
+                    thursdayList.add(new TreeItem<>(a));
+                }
+                if (d.getValue() == 5) {
+                    fridayList.add(new TreeItem<>(a));
+                }
+                if (d.getValue() == 6) {
+                    saturdayList.add(new TreeItem<>(a));
+                }
+            } else if (a.getCreatedBy().equals(MainApp.getCurrentUserName()) && a.getStartLDT().isAfter(beginningDateTime) &&
+                    a.getStartLDT().isBefore(endingDateTime)) {
                 DayOfWeek d = a.getStartLDT().getDayOfWeek();
                 if (d.getValue() == 7) {
                     sundayList.add(new TreeItem<>(a));
@@ -261,6 +333,9 @@ public class AppointmentTabController {
         appointmentTypeColumn.setCellValueFactory((TreeTableColumn.CellDataFeatures<Appointment, String> p) ->
                 new ReadOnlyStringWrapper(p.getValue().getValue().getTitle()));
 
+        consultantNameColumn.setCellValueFactory((TreeTableColumn.CellDataFeatures<Appointment, String> p) ->
+                new ReadOnlyStringWrapper(p.getValue().getValue().getCreatedBy()));
+
 
         // Creating a tree table view
         treeTableView.setRoot(root);
@@ -268,6 +343,7 @@ public class AppointmentTabController {
         treeTableView.getColumns().add(timeColumn);
         treeTableView.getColumns().add(customerNameColumn);
         treeTableView.getColumns().add(appointmentTypeColumn);
+        treeTableView.getColumns().add(consultantNameColumn);
         treeTableView.setShowRoot(false);
         weeklyOrMonthly = "Weekly";
         setLabelText();
@@ -277,7 +353,7 @@ public class AppointmentTabController {
 
     @FXML
     public void showMonthlyView() {
-        choiceBox.setValue("Monthly");
+        weeklyMonthlyChoiceBox.setValue("Monthly");
         weeklyOrMonthly = "Monthly";
         setBeginningAndEndDateTime();
 
@@ -383,7 +459,8 @@ public class AppointmentTabController {
 
 
         for (Appointment a : localAppointmentList) {
-            if(a.getStartLDT().isAfter(beginningDateTime) && a.getStartLDT().isBefore(endingDateTime)) {
+            if(consultantChoiceBox.getValue().equals("Everyone") && a.getStartLDT().isAfter(beginningDateTime) &&
+                    a.getStartLDT().isBefore(endingDateTime)) {
                 int i = a.getStartLDT().getDayOfMonth();
                 if (i == 1) { day1List.add(new TreeItem<>(a)); }
                 if (i == 2) { day2List.add(new TreeItem<>(a)); }
@@ -416,8 +493,40 @@ public class AppointmentTabController {
                 if (i == 29) { day29List.add(new TreeItem<>(a)); }
                 if (i == 30) { day30List.add(new TreeItem<>(a)); }
                 if (i == 31) { day31List.add(new TreeItem<>(a)); }
-
-
+            } else if (a.getCreatedBy().equals(MainApp.getCurrentUserName()) && a.getStartLDT().isAfter(beginningDateTime) &&
+                    a.getStartLDT().isBefore(endingDateTime)) {
+                int i = a.getStartLDT().getDayOfMonth();
+                if (i == 1) { day1List.add(new TreeItem<>(a)); }
+                if (i == 2) { day2List.add(new TreeItem<>(a)); }
+                if (i == 3) { day3List.add(new TreeItem<>(a)); }
+                if (i == 4) { day4List.add(new TreeItem<>(a)); }
+                if (i == 5) { day5List.add(new TreeItem<>(a)); }
+                if (i == 6) { day6List.add(new TreeItem<>(a)); }
+                if (i == 7) { day7List.add(new TreeItem<>(a)); }
+                if (i == 8) { day8List.add(new TreeItem<>(a)); }
+                if (i == 9) { day9List.add(new TreeItem<>(a)); }
+                if (i == 10) { day10List.add(new TreeItem<>(a)); }
+                if (i == 11) { day11List.add(new TreeItem<>(a)); }
+                if (i == 12) { day12List.add(new TreeItem<>(a)); }
+                if (i == 13) { day13List.add(new TreeItem<>(a)); }
+                if (i == 14) { day14List.add(new TreeItem<>(a)); }
+                if (i == 15) { day15List.add(new TreeItem<>(a)); }
+                if (i == 16) { day16List.add(new TreeItem<>(a)); }
+                if (i == 17) { day17List.add(new TreeItem<>(a)); }
+                if (i == 18) { day18List.add(new TreeItem<>(a)); }
+                if (i == 19) { day19List.add(new TreeItem<>(a)); }
+                if (i == 20) { day20List.add(new TreeItem<>(a)); }
+                if (i == 21) { day21List.add(new TreeItem<>(a)); }
+                if (i == 22) { day22List.add(new TreeItem<>(a)); }
+                if (i == 23) { day23List.add(new TreeItem<>(a)); }
+                if (i == 24) { day24List.add(new TreeItem<>(a)); }
+                if (i == 25) { day25List.add(new TreeItem<>(a)); }
+                if (i == 26) { day26List.add(new TreeItem<>(a)); }
+                if (i == 27) { day27List.add(new TreeItem<>(a)); }
+                if (i == 28) { day28List.add(new TreeItem<>(a)); }
+                if (i == 29) { day29List.add(new TreeItem<>(a)); }
+                if (i == 30) { day30List.add(new TreeItem<>(a)); }
+                if (i == 31) { day31List.add(new TreeItem<>(a)); }
             }
         }
 
@@ -513,12 +622,16 @@ public class AppointmentTabController {
         appointmentTypeColumn.setCellValueFactory((TreeTableColumn.CellDataFeatures<Appointment, String> p) ->
                 new ReadOnlyStringWrapper(p.getValue().getValue().getTitle()));
 
+        consultantNameColumn.setCellValueFactory((TreeTableColumn.CellDataFeatures<Appointment, String> p) ->
+                new ReadOnlyStringWrapper(p.getValue().getValue().getCreatedBy()));
+
         // Creating a tree table view
         treeTableView.setRoot(root);
         treeTableView.getColumns().clear();
         treeTableView.getColumns().add(timeColumn);
         treeTableView.getColumns().add(customerNameColumn);
         treeTableView.getColumns().add(appointmentTypeColumn);
+        treeTableView.getColumns().add(consultantNameColumn);
         treeTableView.sort();
         treeTableView.setShowRoot(false);
         weeklyOrMonthly = "Monthly";
@@ -587,7 +700,7 @@ public class AppointmentTabController {
 
     @FXML
     public void showAddAppointment() throws IOException {
-        mainApp.showAddAppointmentScreen();
+        MainApp.showAddAppointmentScreen();
 
     }
 
@@ -703,6 +816,7 @@ public class AppointmentTabController {
             textAreaString += ("Appointment ID:  " + Integer.toString(selectedApt.getAppointmentId()) + "\n");
             textAreaString += ("\n");
 
+            textAreaString += ("Customer:  " + selectedApt.getCustomerNameColumnString() + "\n");
             textAreaString += ("Title:  " + selectedApt.getTitle() + "\n");
             textAreaString += ("\n");
 
@@ -717,7 +831,7 @@ public class AppointmentTabController {
             textAreaString += ("\n");
 
             textAreaString += ("Created Date:  " + selectedApt.getCreatedDateAsLocalString() + "\n");
-            textAreaString += ("Created By:  " + selectedApt.getCreatedBy() + "\n");
+            textAreaString += ("Consultant:  " + selectedApt.getCreatedBy() + "\n");
             textAreaString += ("\n");
 
             textAreaString += ("Last Update:  " + selectedApt.getLastUpdateDateAsLocalString() + "\n");
@@ -727,6 +841,22 @@ public class AppointmentTabController {
             textArea.setText(textAreaString);
         }
 
+    }
+
+    private void populateConsultantList() {
+        String queryString = "SELECT userName FROM user;";
+        try {
+            Statement statement = dbConnect.prepareStatement(queryString);
+            statement.executeQuery(queryString);
+            ResultSet rs = statement.getResultSet();
+
+            while(rs.next()) {
+                consultantList.add(rs.getString("userName"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 

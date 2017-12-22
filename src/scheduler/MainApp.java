@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -83,9 +84,7 @@ public class MainApp extends Application {
             root = FXMLLoader.load(getClass().getResource("view/HomeScreen.fxml"));
 
 
-            //homeScreenController.setMainApp();
-            homeScreenController.setCurrentUserName(currentUserName);
-            //System.out.println("homeScreenController.getCurrentUserName() is: " + homeScreenController.getCurrentUserName());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -164,7 +163,7 @@ public class MainApp extends Application {
     }
 
 
-    public ModifyAppointmentController showAddAppointmentScreen () throws IOException {
+    public static ModifyAppointmentController showAddAppointmentScreen () throws IOException {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(MainApp.class.getResource("view/ModifyAppointment.fxml"));
         VBox page = (VBox) loader.load();
@@ -186,7 +185,7 @@ public class MainApp extends Application {
     }
 
 
-    public ModifyAppointmentController showModifyAppointmentScreen (Appointment appointment) throws IOException {
+    public static ModifyAppointmentController showModifyAppointmentScreen (Appointment appointment) throws IOException {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(MainApp.class.getResource("view/ModifyAppointment.fxml"));
         VBox page = (VBox) loader.load();
@@ -217,18 +216,20 @@ public class MainApp extends Application {
         launch(args);
     }
 
+
     public static String getCurrentUserName() {
         return currentUserName;
     }
+
 
     public static void setCurrentUserName(String currentUserName) {
         MainApp.currentUserName = currentUserName;
     }
 
+
     public static DbConnection getDb() {
         return dbConnect;
     }
-
 
 
     private void bypassLogin (){

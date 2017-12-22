@@ -10,13 +10,13 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="appointmentsTab" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.controller.AppointmentTabController">
+<AnchorPane fx:id="appointmentsTab" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.controller.AppointmentTabController">
    <children>
        <BorderPane prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
            <top>
                <HBox BorderPane.alignment="CENTER">
                    <children>
-                       <ChoiceBox fx:id="choiceBox" prefWidth="150.0">
+                       <ChoiceBox fx:id="weeklyMonthlyChoiceBox" prefWidth="150.0">
                            <HBox.margin>
                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                            </HBox.margin>
@@ -26,6 +26,18 @@
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </HBox.margin>
                   </DatePicker>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Label text="Schedule for:">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <ChoiceBox fx:id="consultantChoiceBox" prefWidth="150.0">
+                     <HBox.margin>
+                        <Insets bottom="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </ChoiceBox>
+                  <Region HBox.hgrow="ALWAYS" />
                    </children>
                </HBox>
            </top>
@@ -55,6 +67,7 @@
                                                <TreeTableColumn fx:id="timeColumn" editable="false" prefWidth="75.0" text="Day/Time" />
                                                <TreeTableColumn fx:id="customerNameColumn" editable="false" prefWidth="75.0" sortable="false" text="Customer" />
                                                <TreeTableColumn fx:id="appointmentTypeColumn" editable="false" prefWidth="75.0" sortable="false" text="Type" />
+                                    <TreeTableColumn fx:id="consultantNameColumn" prefWidth="75.0" text="Consultant" />
                                            </columns>
                                            <columnResizePolicy>
                                                <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

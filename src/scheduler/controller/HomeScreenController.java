@@ -3,7 +3,6 @@ package scheduler.controller;
 
 import scheduler.model.DbConnection;
 
-import javax.swing.plaf.nimbus.State;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,14 +16,10 @@ import static java.time.ZoneOffset.UTC;
 public class HomeScreenController {
 
     private static HomeScreenController firstInstance = null;
-    private static String currentUserName;
-    private static Connection dbConnect;
 
 
 
     public void initialize(){
-        dbConnect = DbConnection.getInstance().getConnection();
-
     }
 
 
@@ -36,13 +31,6 @@ public class HomeScreenController {
     }
 
 
-    public void setCurrentUserName(String currentUserName) {
-    }
-
-    public static String getCurrentUserName() {
-        return currentUserName;
-    }
-
     //returns current date and time in UTC as a string.
     public static String nowUtcAsString() {
 
@@ -51,15 +39,18 @@ public class HomeScreenController {
 
     }
 
+
     public static String formatDateTimeString (String str) {
         return str.replace("T", " ").substring(0,16);
     }
+
 
     public static LocalDateTime convertLocaltoZulu (LocalDateTime local) {
         ZonedDateTime localZoned = local.atZone(ZoneId.systemDefault());
         ZonedDateTime utcZoned = localZoned.withZoneSameInstant(ZoneId.of("UTC"));
         return utcZoned.toLocalDateTime();
     }
+
 
     public static LocalDateTime convertZuluToLocal (LocalDateTime zulu) {
         ZonedDateTime utcZoned = zulu.atZone(ZoneId.of("UTC"));
@@ -74,6 +65,8 @@ public class HomeScreenController {
 
 
     public static String getCustomerNameFromId(int customerId) {
+        Connection dbConnect =  DbConnection.getInstance().getConnection();
+
         String queryString = "SELECT customerName FROM customer WHERE customerId = " + customerId + ";";
         String customerName = "";
 
@@ -91,9 +84,9 @@ public class HomeScreenController {
         }
 
         return customerName;
-
-
     }
+
+
 }
 
 

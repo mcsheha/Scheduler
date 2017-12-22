@@ -8,7 +8,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.controller.ModifyAppointmentController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.controller.ModifyAppointmentController">
     <children>
         <HBox>
          <children>
@@ -28,6 +28,7 @@
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -41,34 +42,36 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </VBox.margin>
             <children>
-                <Label text="Customer*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-                <Label text="Title*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-                <Label text="Description:    " GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
-                <Label text="Location*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
-                <Label text="Contact:    " GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
-                <Label text="url:    " GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
-                <Label text="Start*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
-                <TextField fx:id="titleTextField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <TextField fx:id="descriptionTextField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                <TextField fx:id="locationTextField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                <TextField fx:id="contactTextField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                <TextField fx:id="urlTextField" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-            <Label text="End*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="8" />
-            <ChoiceBox fx:id="customerChoiceBox" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Customer*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+                <Label text="Title*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+                <Label text="Description:    " GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
+                <Label text="Location*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
+                <Label text="Contact:    " GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
+                <Label text="url:    " GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
+                <Label text="Start*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="8" />
+                <TextField fx:id="titleTextField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <TextField fx:id="descriptionTextField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <TextField fx:id="locationTextField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                <TextField fx:id="contactTextField" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                <TextField fx:id="urlTextField" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+            <Label text="End*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="9" />
+            <ChoiceBox fx:id="customerChoiceBox" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <Label text="Appointment Id*:    " GridPane.halignment="RIGHT" />
             <TextField fx:id="appointmentIdTextField" disable="true" editable="false" GridPane.columnIndex="1" />
-            <HBox GridPane.columnIndex="1" GridPane.rowIndex="7">
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="8">
                <children>
                   <DatePicker fx:id="startDatePicker" />
                   <ChoiceBox fx:id="startTimeChoiceBox" prefWidth="150.0" />
                </children>
             </HBox>
-            <HBox GridPane.columnIndex="1" GridPane.rowIndex="8">
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="9">
                <children>
                   <DatePicker fx:id="endDatePicker" />
                   <ChoiceBox fx:id="endTimeChoiceBox" prefWidth="150.0" />
                </children>
             </HBox>
+            <Label text="Consultant*:    " GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+            <ChoiceBox fx:id="consultantChoiceBox" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             </children>
             <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

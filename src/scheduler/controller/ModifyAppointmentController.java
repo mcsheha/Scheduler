@@ -4,6 +4,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import scheduler.MainApp;
 import scheduler.model.Appointment;
 import scheduler.model.DbConnection;
 
@@ -14,13 +15,12 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 
 
 public class ModifyAppointmentController {
 
     private boolean isNewAppointment = true;
-    private static Connection dbConnect;
+    private static Connection dbConnect = DbConnection.getInstance().getConnection();
     private Stage modifyAppointmentScreenStage;
     private static String currentUserName;
     private static AppointmentTabController appointmentTabController;
@@ -33,6 +33,8 @@ public class ModifyAppointmentController {
     private TextField appointmentIdTextField;
     @FXML
     private ChoiceBox<String> customerChoiceBox;
+    @FXML
+    private ChoiceBox<String> consultantChoiceBox;
     @FXML
     private TextField titleTextField;
     @FXML
@@ -63,12 +65,16 @@ public class ModifyAppointmentController {
 
 
     public void initialize(){
-        dbConnect = DbConnection.getInstance().getConnection();
+        //dbConnect = DbConnection.getInstance().getConnection();
         appointmentIdTextField.setText(Integer.toString(getLowestAppointmentId()));
         populateCustomerChoiceBox();
         populateTimeChoiceBoxes();
+        populateConsultantChoiceBox();
+        consultantChoiceBox.setValue(MainApp.getCurrentUserName());
+        System.out.println("The currentUserName in the modifyAppointmentController is: " + MainApp.getCurrentUserName());
         appointmentTabController = AppointmentTabController.getInstance();
     }
+
 
 
 
@@ -135,6 +141,23 @@ public class ModifyAppointmentController {
 
     }
 
+    public void populateConsultantChoiceBox () {
+        ObservableList<String> list = FXCollections.observableArrayList();
+        String queryString = "SELECT userName FROM user;";
+        try{
+            Statement statement = dbConnect.prepareStatement(queryString);
+            statement.executeQuery(queryString);
+            ResultSet rs = statement.getResultSet();
+
+            while(rs.next()) {
+                list.add(rs.getString("userName"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        consultantChoiceBox.setItems(list);
+    }
 
 
     public void populateTimeChoiceBoxes() {
@@ -163,6 +186,7 @@ public class ModifyAppointmentController {
             LocalDateTime startDateTime = localDateTimeStringToObject(startDateString, startTimeString);
             String endDateString = endDatePicker.getValue().toString();
             String endTimeString = endTimeChoiceBox.getSelectionModel().getSelectedItem();
+            String consultant = consultantChoiceBox.getSelectionModel().getSelectedItem();
             LocalDateTime endDateTime = localDateTimeStringToObject(endDateString, endTimeString);
             int customerId = getCustomerIdFromName(customerName);
 
@@ -184,7 +208,7 @@ public class ModifyAppointmentController {
                     psmt.setTimestamp(8, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(startDateTime)));
                     psmt.setTimestamp(9, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(endDateTime)));
                     psmt.setTimestamp(10, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(LocalDateTime.now())));
-                    psmt.setString(11, getCurrentUserName());
+                    psmt.setString(11, consultant);
                     psmt.setTimestamp(12, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(LocalDateTime.now())));
                     psmt.setString(13, getCurrentUserName());
                     psmt.executeUpdate();
@@ -203,7 +227,7 @@ public class ModifyAppointmentController {
             // modifying existing appointment
             else {
                 String sql = "UPDATE appointment SET customerId = ?, title = ?, description = ?, location = ?, contact = ?," +
-                        "url = ?, start = ?, end = ?, lastUpdate = ?, lastUpdateBy = ? WHERE appointmentId = ?";
+                        "url = ?, start = ?, end = ?, lastUpdate = ?, lastUpdateBy = ?, createdBy = ? WHERE appointmentId = ?";
 
                 PreparedStatement psmt = null;
 
@@ -220,7 +244,8 @@ public class ModifyAppointmentController {
 
                     psmt.setTimestamp(9, Timestamp.valueOf(HomeScreenController.convertLocaltoZulu(LocalDateTime.now())));
                     psmt.setString(10, getCurrentUserName());
-                    psmt.setInt(11, appointmentId);
+                    psmt.setString(11, consultant);
+                    psmt.setInt(12, appointmentId);
                     psmt.executeUpdate();
                     modifyAppointmentScreenStage.close();
                     appointmentTabController.removeFromAppointmentList(appointmentId);
@@ -262,6 +287,8 @@ public class ModifyAppointmentController {
         LocalDate dayBefore = newAptStartDateTimeZulu.toLocalDate().minusDays(1);
         LocalDate dayAfter = newAptEndDateTimeZulu.toLocalDate().plusDays(1);
 
+        int displayedAppointmentId = Integer.valueOf(appointmentIdTextField.getText());
+
         String queryString = "SELECT * FROM appointment WHERE start >= '" + dayBefore +"' AND start <='" + dayAfter + "';";
 
         try {
@@ -274,7 +301,9 @@ public class ModifyAppointmentController {
                 LocalDateTime oldAptEndDateTimeZulu = rs.getTimestamp("end").toLocalDateTime();
                 int oldAptId = rs.getInt("appointmentId");
 
-                if (!(Integer.valueOf(appointmentIdTextField.getText()) == oldAptId) && newAptStartDateTimeZulu.isEqual(oldAptStartDateTimeZulu) || newAptEndDateTimeZulu.isEqual(oldAptEndDateTimeZulu) ||
+                if(displayedAppointmentId == oldAptId) {
+                    rtnBool = true;
+                } else if (newAptStartDateTimeZulu.isEqual(oldAptStartDateTimeZulu) || newAptEndDateTimeZulu.isEqual(oldAptEndDateTimeZulu) ||
                         (newAptStartDateTimeZulu.isBefore(oldAptStartDateTimeZulu) && newAptEndDateTimeZulu.isAfter(oldAptStartDateTimeZulu)) ||
                         (newAptStartDateTimeZulu.isAfter(oldAptStartDateTimeZulu) &&  newAptEndDateTimeZulu.isBefore(oldAptEndDateTimeZulu))) {
 
@@ -292,8 +321,9 @@ public class ModifyAppointmentController {
                     alert.setContentText(schedulingConflictError);
                     alert.showAndWait();
 
-                    return false;
-                }
+                    rtnBool = false;
+                } else rtnBool = true;
+
             }
 
         } catch (SQLException e) {
@@ -440,6 +470,7 @@ public class ModifyAppointmentController {
         appointmentIdTextField.setText(Integer.toString(selectedAppointment.getAppointmentId()));
         titleTextField.setText(Integer.toString(selectedAppointment.getAppointmentId()));
         customerChoiceBox.setValue(selectedAppointment.getCustomerNameColumnString());
+        consultantChoiceBox.setValue(selectedAppointment.getCreatedBy());
         titleTextField.setText(selectedAppointment.getTitle());
         descriptionTextField.setText(selectedAppointment.getDescription());
         locationTextField.setText(selectedAppointment.getLocation());
