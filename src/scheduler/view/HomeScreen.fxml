@@ -44,6 +44,11 @@
                         <fx:include fx:id="customerTab" source="CustomerTab.fxml" />
                     </content>
                 </Tab>
+            <Tab text="Reporting">
+              <content>
+                  <fx:include fx:id="reportingTab" source="ReportingTab.fxml" />
+              </content>
+            </Tab>
             </tabs>
         </TabPane>
     </center>
