@@ -5,10 +5,21 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -45,11 +56,6 @@ public class LoginController {
     private static MainApp mainApp;
 
 
-    @FXML
-    void submit(){
-        System.out.println("Submitted!");
-
-    }
 
     @FXML
     void forgotPasswordClicked() {
@@ -111,27 +117,35 @@ public class LoginController {
 
         // The passwords match
         if(Objects.equals(parsedPassword, storedPassword)){
-            System.out.println("The passwords match!");
             mainApp.setCurrentUserName(parsedUsername);
             mainApp.showHomeScreen();
-            //mainApp.setCurrentUser(parsedUsername);
+            writeToLog();
 
         // The passwords do not match
         } else {
-            System.out.println("The passwords don't match!");
             incorrectPassword();
         }
 
 
     }
 
-    public String getUsername(){
-        return usernameField.getText();
+
+    private void writeToLog () {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formatUtcTime = LocalDateTime.now(Clock.systemUTC()).format(formatter);
+
+        try {
+            final Path path = Paths.get("src/scheduler/LoginLog.txt");
+            Files.write(path, Arrays.asList(String.format("%-7s%-10.9s%-16.16s%-19s%-7s","User: ", usernameField.getText(),
+                    " logged in at: ", formatUtcTime, " [UTC]")), StandardCharsets.UTF_8,
+                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public String getPassword(){
-        return passwordField.getText();
-    }
+
+
 
     public void setMainApp (MainApp mainApp) {
         this.mainApp = mainApp;

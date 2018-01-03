@@ -29,8 +29,6 @@ public class MainApp extends Application {
     private Stage primaryStage;
     private static DbConnection dbConnect = DbConnection.getInstance();
     private static LoginController loginController = new LoginController();
-    private static HomeScreenController homeScreenController = new HomeScreenController();
-    private static ModifyCustomerController modifyCustomerController = new ModifyCustomerController();
     private ResourceBundle loginBundle;
     private static String currentUserName;
 
@@ -52,7 +50,7 @@ public class MainApp extends Application {
         loginBundle = ResourceBundle.getBundle("scheduler/Bundle");
         dbConnect.printTable("user");
         showLoginScreen();
-        bypassLogin();
+        //bypassLogin();
 
     }
 

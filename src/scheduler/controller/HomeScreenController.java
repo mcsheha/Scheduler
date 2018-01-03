@@ -1,6 +1,10 @@
 package scheduler.controller;
 
 
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.MenuItem;
+import scheduler.MainApp;
 import scheduler.model.DbConnection;
 
 import java.sql.Connection;
@@ -20,6 +24,12 @@ public class HomeScreenController {
 
 
     public void initialize(){
+    }
+
+
+    @FXML
+    private void closeClicked () {
+        Platform.exit();
     }
 
 
