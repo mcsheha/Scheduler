@@ -27,7 +27,7 @@ import java.util.*;
 public class AppointmentTabController {
 
     private static AppointmentTabController firstInstance = null;
-    public static ObservableList<Appointment> localAppointmentList = FXCollections.observableArrayList();
+    private static ObservableList<Appointment> localAppointmentList = FXCollections.observableArrayList();
 
     private static Connection dbConnect = DbConnection.getInstance().getConnection();
     private ArrayList<String> consultantList = new ArrayList<>();
@@ -44,10 +44,6 @@ public class AppointmentTabController {
     @FXML
     private Label label;
     @FXML
-    private Button addAppointmentButton;
-    @FXML
-    private AnchorPane appointmentsTab;
-    @FXML
     private TreeTableView<Appointment>  treeTableView = new TreeTableView<>();
     @FXML
     private TreeTableColumn<Appointment, String> timeColumn = new TreeTableColumn<>();
@@ -57,12 +53,9 @@ public class AppointmentTabController {
     private TreeTableColumn<Appointment, String> appointmentTypeColumn = new TreeTableColumn<>();
     @FXML
     private TreeTableColumn<Appointment, String> consultantNameColumn = new TreeTableColumn<>();
-
     private String weeklyOrMonthly = "Weekly";
     private String userOrEveryone = "Everyone";
-
     private LocalDateTime beginningDateTime;
-
     private LocalDateTime endingDateTime;
 
 
@@ -121,6 +114,8 @@ public class AppointmentTabController {
         showAppointmentDetails();
     }
 
+
+
     private void checkForUpcomingAppointments() {
         LocalDateTime loginDateTime = LocalDateTime.now();
         LocalDateTime loginDateTimePlus15 = loginDateTime.plusMinutes(15);
@@ -149,8 +144,9 @@ public class AppointmentTabController {
     }
 
 
+    // Method used to initially show the schedule or to refresh the schedule view
     @FXML
-    public void showView() {
+    private void showView() {
         weeklyOrMonthly = weeklyMonthlyChoiceBox.getValue();
         userOrEveryone = consultantChoiceBox.getValue();
         if ((weeklyOrMonthly.equals("Monthly"))) {
@@ -162,6 +158,7 @@ public class AppointmentTabController {
     }
 
 
+    // Deletes an appointment from the DB and local appointment list
     @FXML
     public void handleDelete () {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -184,7 +181,7 @@ public class AppointmentTabController {
                 e.printStackTrace();
             }
 
-            // also delete from local customer list
+            // also delete from local appointment list
             localAppointmentList.remove(appointment);
         } else {
             alert.close();
@@ -193,6 +190,7 @@ public class AppointmentTabController {
     }
 
 
+    // Modify button clicked
     public void handleModifyButton () throws IOException {
         if (treeTableView.getSelectionModel().getSelectedItem() == null ||
                 treeTableView.getSelectionModel().getSelectedItem().getValue().isDummyAppointment()) {
@@ -214,7 +212,7 @@ public class AppointmentTabController {
 
 
 
-    public void showWeeklyView () {
+    private void showWeeklyView () {
         weeklyMonthlyChoiceBox.setValue("Weekly");
         weeklyOrMonthly = "Weekly";
         setBeginningAndEndDateTime();
@@ -352,7 +350,7 @@ public class AppointmentTabController {
 
 
     @FXML
-    public void showMonthlyView() {
+    private void showMonthlyView() {
         weeklyMonthlyChoiceBox.setValue("Monthly");
         weeklyOrMonthly = "Monthly";
         setBeginningAndEndDateTime();
@@ -653,6 +651,8 @@ public class AppointmentTabController {
 
     }
 
+
+
     @FXML
     public void setLabelText () {
         String labelText;
@@ -704,7 +704,8 @@ public class AppointmentTabController {
 
     }
 
-    public void pullAppointmentsFromDb() {
+
+    private void pullAppointmentsFromDb() {
         //ObservableList<Appointment> tempAppointmentList = FXCollections.observableArrayList();
         String sql = "SELECT * FROM appointment;";
         PreparedStatement psmt = null;
@@ -806,6 +807,7 @@ public class AppointmentTabController {
         return resultString;
     }
 
+
     public void showAppointmentDetails () {
         String textAreaString = "";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
@@ -842,6 +844,7 @@ public class AppointmentTabController {
         }
 
     }
+
 
     private void populateConsultantList() {
         String queryString = "SELECT userName FROM user;";

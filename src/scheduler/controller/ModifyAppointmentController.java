@@ -71,7 +71,6 @@ public class ModifyAppointmentController {
         populateTimeChoiceBoxes();
         populateConsultantChoiceBox();
         consultantChoiceBox.setValue(MainApp.getCurrentUserName());
-        System.out.println("The currentUserName in the modifyAppointmentController is: " + MainApp.getCurrentUserName());
         appointmentTabController = AppointmentTabController.getInstance();
     }
 
@@ -321,7 +320,7 @@ public class ModifyAppointmentController {
                     alert.setContentText(schedulingConflictError);
                     alert.showAndWait();
 
-                    rtnBool = false;
+                    return false;
                 } else rtnBool = true;
 
             }
@@ -425,7 +424,6 @@ public class ModifyAppointmentController {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 
-        System.out.println("This is the raw output of the datepicker: " + startDatePicker.getValue());
 
         String startDateString = startDatePicker.getValue().toString();
         String endDateString = endDatePicker.getValue().toString();
@@ -450,7 +448,6 @@ public class ModifyAppointmentController {
 
 
         if (errorMessage.length() == 0) {
-            System.out.println("All inputs are valid!~~~~~~~~~~~~~");
             return true;
         }
         else {

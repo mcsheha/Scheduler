@@ -66,7 +66,7 @@
                                            <columns>
                                                <TreeTableColumn fx:id="timeColumn" editable="false" prefWidth="75.0" text="Day/Time" />
                                                <TreeTableColumn fx:id="customerNameColumn" editable="false" prefWidth="75.0" sortable="false" text="Customer" />
-                                               <TreeTableColumn fx:id="appointmentTypeColumn" editable="false" prefWidth="75.0" sortable="false" text="Type" />
+                                               <TreeTableColumn fx:id="appointmentTypeColumn" editable="false" prefWidth="75.0" sortable="false" text="Title" />
                                     <TreeTableColumn fx:id="consultantNameColumn" prefWidth="75.0" text="Consultant" />
                                            </columns>
                                            <columnResizePolicy>

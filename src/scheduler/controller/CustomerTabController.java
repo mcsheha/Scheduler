@@ -24,34 +24,23 @@ public class CustomerTabController {
 
     @FXML
     private AnchorPane customerTab;
-
     @FXML
     private Button addCustomer;
-
     @FXML
     private TableView<Customer> customerTable;
-
     @FXML
     private TableColumn<Customer, Integer> customerIdColumn;
-
     @FXML
     private TextField customerIdField;
-
     @FXML
     private TextArea customerInfoField;
-
     @FXML
     private TextField customerActiveField;
-
     @FXML
     private TableColumn<Customer, String> customerNameColumn;
-
     private static CustomerTabController firstInstance = null;
-
-    public static ObservableList<Customer> customerList;
-    public static Connection dbConnect;
-
-
+    private static ObservableList<Customer> customerList;
+    private static Connection dbConnect;
     private static MainApp mainApp;
     private static String currentUserName;
 
@@ -61,11 +50,12 @@ public class CustomerTabController {
         dbConnect = DbConnection.getInstance().getConnection();
         this.mainApp = MainApp.getInstance();
         this.currentUserName = mainApp.getCurrentUserName();
-
         setTheTable();
 
     }
 
+
+    // Populates the list of customers
     public void setTheTable () {
         populateCustomerList();
 
@@ -78,16 +68,12 @@ public class CustomerTabController {
         customerTable.setItems(customerList);
         Collections.sort(customerList);
 
-
         customerTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> showCustomerDetails(newValue));
 
     }
 
 
-    //public void setMainApp (MainApp mainApp) {
-    //    this.mainApp = mainApp;
-    //}
 
     public static CustomerTabController getInstance() {
         if (firstInstance == null) {
@@ -95,6 +81,8 @@ public class CustomerTabController {
         }
         return firstInstance;
     }
+
+
 
     public void setMainApp () {
         this.mainApp = MainApp.getInstance();
@@ -108,7 +96,7 @@ public class CustomerTabController {
     }
 
 
-
+    // Queries customers from the DB and creates a local list of customers
     public void populateCustomerList() {
 
         ObservableList<Customer> customers = FXCollections.observableArrayList();
@@ -134,11 +122,15 @@ public class CustomerTabController {
         this.customerList = customers;
     }
 
+
+
     public void addToCustomerList (int id, String name, int addressId) {
         customerList.add(new Customer (id, name, addressId));
         Collections.sort(customerList);
 
     }
+
+
 
     private String isCustomerActive (Customer customer) {
         int active = -1;
@@ -167,14 +159,8 @@ public class CustomerTabController {
     }
 
 
-    public String getCurrentUserName() {
-        return currentUserName;
-    }
 
-    public void setCurrentUserName(String currentUserName) {
-        this.currentUserName = currentUserName;
-    }
-
+    // Populates or clears the customer details pane depending on which customer is selected in left pane (customer list)
     private void showCustomerDetails (Customer customer) {
         if (customer != null) {
             customerIdField.setText(String.valueOf(customer.getCustomerId()));
@@ -188,6 +174,8 @@ public class CustomerTabController {
         }
     }
 
+
+    // Queries DB to get customer Info
     private String getCustomerInfo (Customer customer) {
         String customerInfo = null;
 
@@ -308,6 +296,7 @@ public class CustomerTabController {
     }
 
 
+
     private void makeCustomerInactive() {
         int customerId = -1;
         Customer customer = customerTable.getSelectionModel().getSelectedItem();
@@ -323,6 +312,7 @@ public class CustomerTabController {
             e.printStackTrace();
         }
     }
+
 
 
     public void deleteCustomer () {

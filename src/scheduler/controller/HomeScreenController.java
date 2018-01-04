@@ -1,12 +1,9 @@
 package scheduler.controller;
 
-
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuItem;
-import scheduler.MainApp;
+import javafx.scene.control.Alert;
 import scheduler.model.DbConnection;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,8 +11,9 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-
 import static java.time.ZoneOffset.UTC;
+
+
 
 public class HomeScreenController {
 
@@ -27,11 +25,6 @@ public class HomeScreenController {
     }
 
 
-    @FXML
-    private void closeClicked () {
-        Platform.exit();
-    }
-
 
     public static HomeScreenController getInstance() {
         if (firstInstance == null) {
@@ -41,18 +34,19 @@ public class HomeScreenController {
     }
 
 
+
     //returns current date and time in UTC as a string.
     public static String nowUtcAsString() {
-
         LocalDateTime currentDateTime = LocalDateTime.now(UTC);
         return currentDateTime.toString().replace("T", " ").substring(0,21);
-
     }
+
 
 
     public static String formatDateTimeString (String str) {
         return str.replace("T", " ").substring(0,16);
     }
+
 
 
     public static LocalDateTime convertLocaltoZulu (LocalDateTime local) {
@@ -62,6 +56,7 @@ public class HomeScreenController {
     }
 
 
+
     public static LocalDateTime convertZuluToLocal (LocalDateTime zulu) {
         ZonedDateTime utcZoned = zulu.atZone(ZoneId.of("UTC"));
         ZonedDateTime localZoned = utcZoned.withZoneSameInstant(ZoneId.systemDefault());
@@ -69,11 +64,8 @@ public class HomeScreenController {
     }
 
 
-    public static String dateTimeAsString (LocalDateTime dateTime) {
-        return dateTime.toString().replace("T", " ");
-    }
 
-
+    // Takes customer Id and returns customer name
     public static String getCustomerNameFromId(int customerId) {
         Connection dbConnect =  DbConnection.getInstance().getConnection();
 
@@ -94,6 +86,28 @@ public class HomeScreenController {
         }
 
         return customerName;
+    }
+
+
+
+    // For 'closed' menu item clicked.
+    @FXML
+    private void closeClicked () {
+        Platform.exit();
+    }
+
+
+
+    // For 'about' menu item clicked.
+    @FXML
+    public void showAbout () {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("About");
+        alert.setHeaderText(null);
+        alert.setContentText("Scheduler Application version 1.0\n" +
+                "C195 - Advanced Java Concepts\nBy: Michael Shehadeh");
+
+        alert.showAndWait();
     }
 
 

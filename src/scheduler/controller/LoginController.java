@@ -36,32 +36,17 @@ public class LoginController {
 
     @FXML
     private Button submit;
-
     @FXML
     private TextField usernameField;
-
     @FXML
     private TextField passwordField;
-
-
-
-    public TextField getUsernameField() {
-        return usernameField;
-    }
-
-    public TextField getPasswordField() {
-        return passwordField;
-    }
-
     private static MainApp mainApp;
 
 
 
     @FXML
-    void forgotPasswordClicked() {
-
+    private void forgotPasswordClicked() {
         ResourceBundle loginBundle = ResourceBundle.getBundle("scheduler/Bundle");
-
 
         Alert alert = new Alert(AlertType.INFORMATION);
 
@@ -77,9 +62,8 @@ public class LoginController {
 
 
 
-    public void incorrectPassword (){
+    private void incorrectPassword (){
         ResourceBundle loginBundle = ResourceBundle.getBundle("scheduler/Bundle");
-
 
         Alert alert = new Alert(AlertType.ERROR);
 
@@ -92,9 +76,10 @@ public class LoginController {
         alert.showAndWait();
     }
 
+
+
     @FXML
     public void loginToSystem (){
-
         String parsedUsername = usernameField.getText();
         String parsedPassword = passwordField.getText();
 
@@ -125,9 +110,8 @@ public class LoginController {
         } else {
             incorrectPassword();
         }
-
-
     }
+
 
 
     private void writeToLog () {
@@ -143,7 +127,6 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-
 
 
 

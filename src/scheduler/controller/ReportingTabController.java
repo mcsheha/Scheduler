@@ -174,4 +174,25 @@ public class ReportingTabController {
     }
 
 
+    // Prints selected report to console
+    @FXML
+    private void printClicked() {
+        // Number of appointment types by month
+        if (report1Button.isSelected()) {
+            reportAppointmentTypesByMonth();
+            System.out.println(reportResults.getText());
+
+            // Schedule for consultant
+        } else if (report2Button.isSelected()) {
+            reportConsultantSchedule();
+            System.out.println(reportResults.getText());
+
+        } else {
+            reportPhoneListing();
+            System.out.println(reportResults.getText());
+
+        }
+    }
+
+
 }

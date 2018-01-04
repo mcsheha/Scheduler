@@ -30,9 +30,11 @@ public class Appointment {
     private String lastUpdateBy;
 
 
+
     // Displayed in Monthly and Weekly views pane
     private String timeColumnString;
     private String customerNameColumnString = "";
+
 
 
     // Constructor for dummy appointments used as treeTableView headers... Monday, Tuesday, 1, 2, 3, etc.
@@ -40,6 +42,7 @@ public class Appointment {
         this.timeColumnString = timeColumnString;
         this.isDummyAppointment = true;
     }
+
 
 
     // Constructor used when pulling appointments from DB and also when completing add/modify form
@@ -58,11 +61,12 @@ public class Appointment {
         this.lastUpdateBy = lastUpdateBy;
         this.createdDateLDT = createDateLDT;
         this.lastUpdateLDT = lastUpdateLDT;
-
         this.customerNameColumnString = getCustomerNameFromDb(customerId);
         this.timeColumnString = startLDT.toString().substring(11,16) + " - " + endLDT.toString().substring(11, 16);
 
     }
+
+
 
     public String getCreatedDateAsLocalString() {
         String str = createdDateLDT.toString();
@@ -70,11 +74,14 @@ public class Appointment {
 
     }
 
+
+
     public String getLastUpdateDateAsLocalString() {
         String str = lastUpdateLDT.toString();
         return HomeScreenController.formatDateTimeString(str);
 
     }
+
 
 
     private String getCustomerNameFromDb (int customerId) {
@@ -162,22 +169,5 @@ public class Appointment {
         return endLDT;
     }
 
-/*
 
-    public int compareTo(Appointment o1, Appointment o2) {
-        return o1.getStartLDT().compareTo(o2.getStartLDT());
-    }
-
-
-    @Override
-    public int compareTo(Appointment o) {
-        return this.startLDT.compareTo(o.getStartLDT());
-    }
-
-
-    @Override
-    public int compare(Appointment o1, Appointment o2) {
-        return o1.getStartLDT().compareTo(o2.getStartLDT());
-    }
-*/
 }

@@ -23,6 +23,7 @@ import scheduler.controller.ModifyCustomerController;
 import static java.lang.String.valueOf;
 
 
+
 public class MainApp extends Application {
 
     private static MainApp firstInstance = null;
@@ -41,23 +42,32 @@ public class MainApp extends Application {
     }
 
 
+
     @Override
     public void start(Stage primaryStage) throws Exception{
         this.primaryStage = primaryStage;
         dbConnect.connect();
+
         //Locale.setDefault(new Locale("fr", "FR"));
-        System.out.println("Locale set to: " + Locale.getDefault());
+        //System.out.println("Locale set to: " + Locale.getDefault());
+
         loginBundle = ResourceBundle.getBundle("scheduler/Bundle");
-        dbConnect.printTable("user");
+
+        // Used to print to console all contents of specified table
+        //dbConnect.printTable("user");
+
         showLoginScreen();
+
+        // Used for testing to skip login dialog, automatically logs in as 'admin' and not stored in log file
         //bypassLogin();
 
     }
 
-
+    // Kills DB connection on application exit
     public void stop(){
         dbConnect.disconnect();
     }
+
 
 
     private void showLoginScreen() {
@@ -75,6 +85,7 @@ public class MainApp extends Application {
     }
 
 
+
     public void showHomeScreen() {
 
         Parent root = null;
@@ -90,6 +101,7 @@ public class MainApp extends Application {
         primaryStage.setScene(new Scene(root,900, 750));
         primaryStage.show();
     }
+
 
 
     public ModifyCustomerController showAddCustomerScreen(String currentUserName) throws IOException {
@@ -114,11 +126,10 @@ public class MainApp extends Application {
 
         controller.setTitleLabel("Add Customer");
 
-
-
         dialogStage.showAndWait();
         return controller;
     }
+
 
 
     public ModifyCustomerController showModifyCustomerScreen(String currentUserName, Customer customer) throws IOException {
@@ -150,15 +161,12 @@ public class MainApp extends Application {
         controller.setPostalCodeField(customer.getPostalCode());
         controller.setPhoneNumberField(customer.getPhone());
         controller.setIsActiveCheckBox(customer.isCustomerActive());
-
-
         controller.setTitleLabel("Modify Customer");
-
-
 
         dialogStage.showAndWait();
         return controller;
     }
+
 
 
     public static ModifyAppointmentController showAddAppointmentScreen () throws IOException {
@@ -231,8 +239,7 @@ public class MainApp extends Application {
 
 
     private void bypassLogin (){
-        //this.currentUsrName = "michael";
-        this.currentUserName = "Mike";
+        this.currentUserName = "admin";
         showHomeScreen();
     }
 
