@@ -24,3 +24,11 @@
 hs_err_pid*
 
 .idea
+/src/scheduler/LoginLog.txt
+.classpath
+.project
+Scheduler.eml
+Scheduler.userlibraries
+out/
+src/scheduler/LoginLog.txt
+
