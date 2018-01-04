@@ -22,10 +22,7 @@ import static java.time.ZoneOffset.UTC;
 
 public class CustomerTabController {
 
-    @FXML
-    private AnchorPane customerTab;
-    @FXML
-    private Button addCustomer;
+
     @FXML
     private TableView<Customer> customerTable;
     @FXML
@@ -112,7 +109,6 @@ public class CustomerTabController {
                 int customerID = rs.getInt ("customerId");
                 String customerName = rs.getString("customerName");
                 int addressId = rs.getInt("addressId");
-                //System.out.println(customerID + "\t" + customerName);
                 customers.add(new Customer(customerID, customerName, addressId));
             }
         }
@@ -315,7 +311,7 @@ public class CustomerTabController {
 
 
 
-    public void deleteCustomer () {
+    private void deleteCustomer () {
 
         int customerId = -1;
         Customer customer = customerTable.getSelectionModel().getSelectedItem();
@@ -355,10 +351,6 @@ public class CustomerTabController {
 
 
     public void updateTable (int customerId, String customerName, int addressId) {
-        //customerTable.setItems(customerList);
-        //customerList.remove(1,3); <- this worked
-        System.out.println("The customer list contains " + customerList.size() + " customers.");
-
 
         for (Customer c : customerList) {
             if (c.getCustomerId() == customerId) {
@@ -370,20 +362,8 @@ public class CustomerTabController {
             }
 
         }
-
-
-
     }
-/*
 
-    //returns current date and time in UTC as a string.
-    public String nowUtcAsString() {
-
-        LocalDateTime currentDateTime = LocalDateTime.now(UTC);
-        return currentDateTime.toString().replace("T", " ").substring(0,21);
-
-    }
-*/
 
 
     public String getCustomerName(int customerId) {
