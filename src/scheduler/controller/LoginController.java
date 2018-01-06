@@ -119,6 +119,10 @@ public class LoginController {
         String formatUtcTime = LocalDateTime.now(Clock.systemUTC()).format(formatter);
 
         try {
+            // for NetBeans
+            //final Path path = Paths.get("../src/scheduler/LoginLog.txt");
+
+            //for IntelliJ Idea
             final Path path = Paths.get("src/scheduler/LoginLog.txt");
             Files.write(path, Arrays.asList(String.format("%-7s%-10.9s%-16.16s%-19s%-7s","User: ", usernameField.getText(),
                     " logged in at: ", formatUtcTime, " [UTC]")), StandardCharsets.UTF_8,

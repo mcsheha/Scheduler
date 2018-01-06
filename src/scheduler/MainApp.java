@@ -59,7 +59,7 @@ public class MainApp extends Application {
         showLoginScreen();
 
         // Used for testing to skip login dialog, automatically logs in as 'admin' and not stored in log file
-        //bypassLogin();
+        bypassLogin();
 
     }
 

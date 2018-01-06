@@ -127,6 +127,15 @@ public class CustomerTabController {
     }
 
 
+    public void removeFromCustomerList(int customerId) {
+        for (Customer c : customerList) {
+            if (c.getCustomerId() == customerId) {
+                customerList.remove(c);
+            }
+        }
+    }
+
+
 
     private String isCustomerActive (Customer customer) {
         int active = -1;

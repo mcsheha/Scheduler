@@ -124,7 +124,7 @@ public class ModifyCustomerController {
         this.selectedCustomer = selectedCustomer;
     }
 
-    public boolean isInputValid() {
+    private boolean isInputValid() {
         String errorMessage = "";
         boolean dataTypesCorrect = true;
 
@@ -205,6 +205,8 @@ public class ModifyCustomerController {
                 System.out.println("The addressId is not greater than, or equal to 1");
             }
 
+
+
             // add new customer to database
             if (isNewCustomer) {
 
@@ -231,8 +233,14 @@ public class ModifyCustomerController {
                     e.printStackTrace();
                 }
 
+
             // modifying existing customer, check current data against existing data
             } else {
+                deleteAddress(addressId);
+                customerTabController.removeFromCustomerList(customerId);
+                addressId = getAddressId(streetAddress1, streetAddress2, cityId, postalCode, phone);
+
+
                 String sql = "UPDATE customer SET customerName = ?, addressId = ?, active = ?, lastUpdate = ?, " +
                         "lastUpdateBy = ? WHERE customerId = ?";
 
@@ -259,10 +267,25 @@ public class ModifyCustomerController {
                     e.printStackTrace();
                 }
 
+
             }
         }
 
     }
+
+
+    private void deleteAddress(int addressId) {
+        String sql = "DELETE FROM address WHERE addressId = " + addressId + ";";
+
+        try {
+            Statement statement = dbConnect.prepareStatement(sql);
+            statement.execute(sql);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public static String getCurrentUserName() {
         return currentUserName;
@@ -273,7 +296,7 @@ public class ModifyCustomerController {
     }
 
 
-    public boolean checkIfInTable(String searchTerm, String columnName, String tableName) {
+    private boolean checkIfInTable(String searchTerm, String columnName, String tableName) {
         boolean rtn = false;
 
         String queryString = "SELECT " + columnName + " FROM " + tableName;
@@ -326,7 +349,7 @@ public class ModifyCustomerController {
 
     // Check if the specified country is already in the table and returns the country ID.
     // If not already in table calls addCountry and returns new country ID.
-    public int getCountryId(String country) {
+    private int getCountryId(String country) {
         int countryId = 0;
         String queryString = "SELECT countryId FROM country where country = " + "'" + country + "';";
 
@@ -382,7 +405,7 @@ public class ModifyCustomerController {
 
     // Check if the specified city is already in the table and returns the city ID.
     // If not already in table calls addCity and returns new city ID.
-    public int getCityId(String city, int countryId) {
+    private int getCityId(String city, int countryId) {
         int cityId = 0;
         String queryString = "SELECT cityId FROM city where city = " + "'" + city + "';";
 
@@ -438,7 +461,7 @@ public class ModifyCustomerController {
 
     // Check if the specified address is already in the table and returns the address ID.
     // If not already in table calls addAddress and returns new address ID.
-    public int getAddressId(String address, String address2, int cityId, String postalCode, String phone) {
+    private int getAddressId(String address, String address2, int cityId, String postalCode, String phone) {
         int addressId = 0;
         String queryString = "SELECT addressId FROM address where address = " + "'" + address + "';";
 
@@ -491,14 +514,6 @@ public class ModifyCustomerController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return addressId;
-    }
-
-    private int customerIdToAddress (int customerId) {
-        int addressId = -1;
-        String sql = "SELECT FROM ";
-
-
         return addressId;
     }
 
